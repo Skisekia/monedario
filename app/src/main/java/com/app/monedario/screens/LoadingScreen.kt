@@ -27,7 +27,7 @@ fun LoadingScreen(navController: NavHostController, nextRoute: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF512DA8)),
+            .background(Color(0xFFBBA5E3)),
         contentAlignment = Alignment.Center
     ) {
 

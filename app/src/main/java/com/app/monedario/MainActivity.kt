@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavHostController
 import com.app.monedario.screens.RegisterScreen
 import com.app.monedario.ui.screens.LoadingScreen
+
+import com.app.monedario.ui.theme.GradientStart
+import com.app.monedario.ui.theme.GradientEnd
+
+
 
 
 
@@ -70,10 +76,9 @@ fun WelcomeScreen(navController: NavHostController) {
         //texto principal
         Text(
             text = "Monedario",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = 80.sp,
-                fontFamily = FontFamily.Cursive,                   // cursiva
-                fontWeight = FontWeight.Bold                    // negrita
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 60.sp,
+
             )
         )
         // Imagen ilustrativa
@@ -95,7 +100,7 @@ fun WelcomeScreen(navController: NavHostController) {
             style = TextStyle(fontSize = 30.sp)
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
+
         Text(
             text = buildAnnotatedString {
                 append("Logra lo que  ")
@@ -105,18 +110,31 @@ fun WelcomeScreen(navController: NavHostController) {
             },
             style = TextStyle(fontSize = 30.sp)
         )
+        Spacer(modifier = Modifier.height(10.dp))
         // Botón para iniciar sesión
         Button(
             onClick = { navController.navigate("loadingLogin") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF673AB7))
+            colors = ButtonDefaults.buttonColors(containerColor = GradientStart),
+            contentPadding = PaddingValues()
         ) {
-            Text("Iniciar sesión", color = Color.White)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+
+                        Brush.horizontalGradient(listOf(GradientStart, GradientEnd)),
+                        RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Iniciar sesión", color = Color.White)
+            }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
 
         // Botón para crear cuenta
         OutlinedButton(
