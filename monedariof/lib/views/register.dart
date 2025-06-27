@@ -25,14 +25,30 @@ class _RegisterPageState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFB39DDB),
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
           // Detectar orientación
           final isLandscape = constraints.maxWidth > constraints.maxHeight;
 
+          //Si esta en horizontal
+
+
+          if (isLandscape) {
+            // En horizontal: el card y header llenan todo el ancho
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(constraints.maxWidth, constraints.maxHeight),
+                  _buildCard(constraints.maxWidth, constraints.maxHeight),
+                ],
+              ),
+            );
+          } else {
+
           // Dimensiones base de diseño (portrait)
-          const baseWidth  = 360.0;
-          const baseHeight = 640.0;
+          const baseWidth  = 800.0;
+          const baseHeight = 840.0;
 
           // Sólo en landscape escalamos para que todo quepa
           final scale = isLandscape
@@ -51,7 +67,9 @@ class _RegisterPageState extends State<Register> {
               ),
             ),
           );
-        }),
+        }
+        }
+        ),
       ),
     );
   }
@@ -83,15 +101,15 @@ class _RegisterPageState extends State<Register> {
                   child: Text(
                     'Monedario',
                     style: TextStyle(
-                      fontSize: width * 0.08,
+                      fontSize: width * 0.06,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF512DA8),
                     ),
                   ),
                 ),
                 Positioned(
-                  top: -headerHeight * 0.2,
-                  right: -width * 0.1,
+                  top: -headerHeight * 0.3,
+                  right: -width * 0.0,
                   width: width * 0.6,
                   height: headerHeight * 1.5,
                   child: Lottie.asset(
@@ -106,18 +124,18 @@ class _RegisterPageState extends State<Register> {
 
         // ─── CARD BLANCO ───
         Positioned(
-          top: headerHeight - 40,
+          top: headerHeight - 50,
           left: 0,
           right: 0,
           child: Container(
-            height: cardHeight + 40,
+            height: cardHeight + 500,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
             ),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(sidePadding, 32, sidePadding, 16),
+              padding: EdgeInsets.fromLTRB(sidePadding, 32, sidePadding, 2),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
