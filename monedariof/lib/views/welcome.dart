@@ -25,7 +25,7 @@ class Welcome extends StatelessWidget {
 
             // Imagen central
             Image.asset(
-              'assets/iconhome.png', // tu icono en assets
+              'assets/iconhome.png', // tu icono inicio
               width: 300,
               height: 300,
             ),
