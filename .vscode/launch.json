@@ -5,11 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         
-        {
-            "name": "monedariof",
-            "cwd": "monedariof",
-            "request": "launch",
-            "type": "dart"
+     
+    {
+      "name": "Flutter",
+      "request": "launch",
+      "type": "dart"
+      // opcionalmente puedes fijar deviceId:
+      // "deviceId": "SM_P620"
         },
         {
             "name": "monedariof (profile mode)",

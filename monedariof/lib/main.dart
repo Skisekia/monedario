@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Rutas
 import 'views/splash_screen.dart';
 import 'views/welcome.dart';
 import 'views/register.dart';
+import 'views/login.dart';
 import 'views/loading.dart';
 
-void main() => runApp(const MyApp());
+// Controlador
+import 'controllers/auth_controller.dart';
 
-/// Punto de entrada de la app Monedario.
-/// Defino tema general y todas las rutas necesarias.
+// Tema
+import 'ui/theme.dart';
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AuthController(),
+      child: const MyApp(),
+    ),
+  );
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -17,21 +32,18 @@ class MyApp extends StatelessWidget {
       title: 'Monedario',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Color lila principal
-        primaryColor: const Color(0xFFBBA5E3),
+        // Usamos el color lila definido en theme.dart
+        primaryColor: lilacBackground,
         scaffoldBackgroundColor: Colors.white,
+        useMaterial3: true,
       ),
 
-      // Defino rutas iniciales
-      // Arranca en la pantalla splash
       initialRoute: '/splash',
-
-      // Mapa de rutas con sus widgets correspondientes
       routes: {
-        '/splash':          (ctx) => const SplashScreen(),
-        '/welcome':         (ctx) => const Welcome(),
-        '/register':        (ctx) => const Register(),
-        // Reuso Loading para login y registro
+        '/splash':           (ctx) => const SplashScreen(),
+        '/welcome':          (ctx) => const Welcome(),
+        '/login':            (ctx) => const LoginView(),
+        '/register':         (ctx) => const Register(),
         '/loading_login':    (ctx) => const Loading(nextRoute: '/welcome'),
         '/loading_register': (ctx) => const Loading(nextRoute: '/register'),
       },
