@@ -1,4 +1,4 @@
-package com.example.monedariof
+package com.siclary.Monedario
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -15,15 +15,15 @@
       // "deviceId": "SM_P620"
         },
         {
-            "name": "monedariof (profile mode)",
-            "cwd": "monedariof",
+            "name": "monedario (profile mode)",
+            "cwd": "monedario",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "monedariof (release mode)",
-            "cwd": "monedariof",
+            "name": "monedario (release mode)",
+            "cwd": "monedario",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:872567223101:android:40bcf78df2c84039968b54",
+        "mobilesdk_app_id": "1:872567223101:android:2076495762c67665968b54",
         "android_client_info": {
-          "package_name": "com.siclaryarreola.monedariof"
+          "package_name": "com.siclary.Monedario"
         }
       },
       "oauth_client": [],
