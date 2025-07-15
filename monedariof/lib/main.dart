@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';           // <-- Import necesario
 import 'package:provider/provider.dart';
 
 // Rutas
@@ -14,7 +15,16 @@ import 'controllers/auth_controller.dart';
 // Tema
 import 'ui/theme.dart';
 
-void main() {
+void main() async {
+  // Asegura que Flutter esté inicializado antes de tocar SystemChrome
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Bloquear solo modo retrato (arriba y abajo)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => AuthController(),

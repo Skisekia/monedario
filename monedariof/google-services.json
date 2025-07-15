@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "872567223101",
+    "project_id": "monedarioapp",
+    "storage_bucket": "monedarioapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:872567223101:android:40bcf78df2c84039968b54",
+        "android_client_info": {
+          "package_name": "com.siclaryarreola.monedariof"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6tustW851rjFZ84YfTDH7gVllbfVLjD8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

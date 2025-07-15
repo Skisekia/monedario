@@ -139,7 +139,7 @@ class Welcome extends StatelessWidget {
                   height: 50,
                   child: OutlinedButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/loading_register');
+                      Navigator.of(context).pushReplacementNamed('/register');
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFF512DA8)),
