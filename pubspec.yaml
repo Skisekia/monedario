@@ -20,6 +20,7 @@ dependencies:
   firebase_auth: ^5.6.2         # Para login/registro
   cloud_firestore: ^5.6.11      # Para base de datos 
   firebase_storage: ^12.4.9     # Para subir archivos
+  google_sign_in: ^6.2.1        # Para autenticación con Google
 
 dev_dependencies:
   flutter_test:
@@ -34,3 +35,6 @@ flutter:
     - assets/google.png
     - assets/facebook.png
     - assets/iconhome.png
+    - assets/apple.png
+    - assets/welcome.json
+    - assets/cat_box.json

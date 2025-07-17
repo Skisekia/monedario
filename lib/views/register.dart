@@ -1,274 +1,304 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
 
   @override
-  State<Register> createState() => _RegisterPageState();
+  State<RegisterView> createState() => _RegisterViewState();
 }
 
-class _RegisterPageState extends State<Register> {
-  final _nameCtrl  = TextEditingController();
+class _RegisterViewState extends State<RegisterView> {
+  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
+  final _passCtrl = TextEditingController();
   final _pass2Ctrl = TextEditingController();
+  bool _showPassword = false;
+  bool _showPassword2 = false;
+  bool _loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Sólo vertical
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+  Future<void> _signInWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) throw Exception('Cancelado por usuario');
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } catch (e) {
+      _showError('Ocurrió un error al iniciar sesión con Google');
+    }
+    setState(() => _loading = false);
   }
 
-  @override
-  void dispose() {
-    // Restaurar orientaciones
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    _pass2Ctrl.dispose();
-    super.dispose();
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
-    final headerHeight = h * 0.28;
+    final w = MediaQuery.of(context).size.width;
+    final headerHeight = h * 0.32;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: const Color.fromARGB(255, 253, 253, 253),
+      backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
-        // Permite cerrar teclado al hacer tap fuera de los campos
         child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.only(
-                  top: 0,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                ),
-                children: [
-
-                  // ── CABECERA CURVA CON BACK BUTTON ──
-                  SizedBox(
-                    height: headerHeight,
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.vertical(
-                            bottom: Radius.circular(headerHeight * 0.3),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // HEADER animado
+                SizedBox(
+                  height: headerHeight,
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: headerHeight,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFBC2EB),
+                              Color(0xFF78A3EB),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          child: Container(
-                            width: double.infinity,
-                            height: headerHeight,
-                            color: const Color.fromARGB(0, 243, 243, 245),
-                            padding: EdgeInsets.only(
-                              left: w * 0.06,
-                              right: w * 0.06,
-                              top: h * 0.02,
-                            ),
-                            child: Stack(
-                              children: [
-                               
-                                Positioned(
-                                  top: h * 0.06,
-                                  left: 0,
-                                  child: Text(
-                                    'Monedario',
-                                    style: TextStyle(
-                                      fontSize: w * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xffbbb7e5),
-                                    ),
-                                  ),
-                                ),
-                                // Animación
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: SizedBox(
-                                    width: w * 0.6,
-                                    height: headerHeight * 0.6,
-                                    child: Lottie.asset(
-                                      'assets/cat_typing.json',
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(headerHeight * 0.10),
+                            bottomRight: Radius.circular(headerHeight * 0.10),
                           ),
                         ),
-                        // Botón atrás
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: () => Navigator.of(context)
-                                .pushReplacementNamed('/welcome'),
+                      ),
+                      // Animación
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: SizedBox(
+                          width: w * 0.5,
+                          height: headerHeight * 0.77,
+                          child: Lottie.asset(
+                            'assets/cat_box.json',
+                            fit: BoxFit.contain,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  // Un poquito de espacio antes del card
-                  SizedBox(height: 8),
-
-                  // ── TARJETA BLANCA ──
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: w * 0.06,
-                      vertical: h * 0.03,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Crea una cuenta',
-                          style: TextStyle(
-                            fontSize: w * 0.055,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ),
+                      // Botón atrás
+                      Positioned(
+                        top: 10,
+                        left: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                         ),
-                        SizedBox(height: h * 0.02),
-
-                        _buildField(_nameCtrl,  'Tu nombre',          Icons.person, w),
-                        SizedBox(height: h * 0.015),
-                        _buildField(_emailCtrl, 'ejemplo@gmail.com',   Icons.email,      w,
-                                    keyboardType: TextInputType.emailAddress),
-                        SizedBox(height: h * 0.015),
-                        _buildField(_passCtrl,  'Contraseña',         Icons.lock,       w,
-                                    obscure: true),
-                        SizedBox(height: h * 0.015),
-                        _buildField(_pass2Ctrl, 'Repite contraseña',  Icons.lock,       w,
-                                    obscure: true),
-                        SizedBox(height: h * 0.03),
-
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.of(context)
-                                .pushReplacementNamed('/welcome'),
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF9575CD), Color(0xFFD1C4E9)],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Crear cuenta',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                      ),
+                      // Texto de bienvenida
+                      Positioned(
+                        top: headerHeight * 0.20,
+                        left: 16,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Crear cuenta',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ),
-
-                        SizedBox(height: h * 0.025),
-                        Row(children: const [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('Continuar con'),
-                          ),
-                          Expanded(child: Divider()),
-                        ]),
-                        SizedBox(height: h * 0.015),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {},
-                                icon: Image.asset('assets/google.png',
-                                    width: 24, height: 24),
-                                label: const Text('Google'),
-                                style: OutlinedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: w * 0.04),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {},
-                                icon: Image.asset('assets/facebook.png',
-                                    width: 24, height: 24),
-                                label: const Text('Facebook'),
-                                style: OutlinedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Regístrate gratis y comienza hoy.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 17,
                               ),
                             ),
                           ],
                         ),
-
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
 
-                  // Un poco de espacio final
-                  SizedBox(height: 16),
-                ],
-              );
-            },
+                // TARJETA REGISTRO
+                Container(
+                  width: w * 0.99,
+                  margin: const EdgeInsets.only(top: 2, bottom: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12.withOpacity(0.06),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Registro',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
+                      const SizedBox(height: 15),
+                      _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
+                      const SizedBox(height: 15),
+                      _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
+                          showPassword: _showPassword,
+                          togglePassword: () => setState(() => _showPassword = !_showPassword)),
+                      const SizedBox(height: 15),
+                      _buildInput(_pass2Ctrl, "Repite la contraseña", Icons.lock_outline, true,
+                          showPassword: _showPassword2,
+                          togglePassword: () => setState(() => _showPassword2 = !_showPassword2)),
+                      const SizedBox(height: 25),
+
+                      // Botón Registrar
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : () {}, // Aquí tu lógica de registro
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 50,
+                              child: _loading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white)
+                                  : const Text(
+                                      'Registrarme',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 17),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Divider y social login
+                      Row(children: const [
+                        Expanded(child: Divider(thickness: 1.2)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text('O regístrate con'),
+                        ),
+                        Expanded(child: Divider(thickness: 1.2)),
+                      ]),
+                      const SizedBox(height: 12),
+
+                      // Botones sociales
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildSocialBtn('assets/facebook.png', () {}),
+                          const SizedBox(width: 14),
+                          _buildSocialBtn('assets/google.png', _signInWithGoogle),
+                          const SizedBox(width: 14),
+                          _buildSocialBtn('assets/apple.png', () {}),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Navegación a login
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("¿Ya tienes cuenta?",
+                              style: TextStyle(fontSize: 15)),
+                          TextButton(
+                            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                            child: const Text(
+                              'Inicia sesión',
+                              style: TextStyle(
+                                  color: Color(0xFF78A3EB),
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildField(
-    TextEditingController controller,
-    String hint,
-    IconData icon,
-    double w, {
-    TextInputType keyboardType = TextInputType.text,
-    bool obscure = false,
-  }) {
+  Widget _buildInput(TextEditingController c, String hint, IconData icon,
+      bool obscure,
+      {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscure,
+      controller: c,
+      obscureText: obscure && !showPassword,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF555555)),
+        prefixIcon: Icon(icon, color: const Color(0xFF78A3EB)),
+        suffixIcon: obscure
+            ? IconButton(
+                icon: Icon(
+                  showPassword ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xFF78A3EB),
+                ),
+                onPressed: togglePassword,
+              )
+            : null,
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        fillColor: const Color(0xFFF4F6FA),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSocialBtn(String asset, VoidCallback onTap) {
+    return Ink(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+      ),
+      child: IconButton(
+        icon: Image.asset(asset, width: 28, height: 28),
+        onPressed: onTap,
       ),
     );
   }

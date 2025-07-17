@@ -8,6 +8,7 @@ import 'views/welcome.dart';
 import 'views/register.dart';
 import 'views/login.dart';
 import 'views/loading.dart';
+import 'views/dashboard.dart';
 
 // Controlador
 import 'controllers/auth_controller.dart';
@@ -53,9 +54,10 @@ class MyApp extends StatelessWidget {
         '/splash':           (ctx) => const SplashScreen(),
         '/welcome':          (ctx) => const Welcome(),
         '/login':            (ctx) => const LoginView(),
-        '/register':         (ctx) => const Register(),
+        '/register':         (ctx) => const RegisterView(),
         '/loading_login':    (ctx) => const Loading(nextRoute: '/welcome'),
         '/loading_register': (ctx) => const Loading(nextRoute: '/register'),
+        '/dashboard': (context) => const Dashboard(),
       },
     );
   }

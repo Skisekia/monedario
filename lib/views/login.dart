@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
-
   @override
   State<LoginView> createState() => _LoginViewState();
 }
@@ -12,234 +12,311 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  bool _loading = false;
+  bool _showPassword = false;
 
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+  Future<void> _signInWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) throw Exception('Cancelado por usuario');
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } catch (e) {
+      _showError('Ocurrió un error al iniciar sesión con Google');
+    }
+    setState(() => _loading = false);
   }
 
-  @override
-  void dispose() {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> _signInWithEmail() async {
+    setState(() => _loading = true);
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } on FirebaseAuthException catch (e) {
+      _showError(e.message ?? 'Error');
+    } catch (_) {
+      _showError('Ocurrió un error');
+    }
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
-    final headerHeight = h * 0.3;
+    final w = MediaQuery.of(context).size.width;
+    final headerHeight = h * 0.32;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFB39DDB),
+      backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: ListView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            children: [
-              SizedBox(
-                height: headerHeight,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      color: const Color(0xFFB39DDB),
-                    ),
-                    Positioned(
-                      right: w * 0.04,
-                      bottom: 0,
-                      child: SizedBox(
-                        width: w * 0.7,
-                        height: headerHeight * 0.7,
-                        child: Lottie.asset(
-                          'assets/cat_typing.json',
-                          fit: BoxFit.contain,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // HEADER animado
+                SizedBox(
+                  height: headerHeight,
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: h,
+                        width: w,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFFFBC2EB),
+                              Color(0xFF78A3EB),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: w * 0.06,
-                      top: h * 0.02,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.of(context)
-                            .pushReplacementNamed('/welcome'),
-                      ),
-                    ),
-                    Positioned(
-                      top: h * 0.075,
-                      left: w * 0.02,
-                      child: Text(
-                        'Monedario',
-                        style: TextStyle(
-                          fontSize: w * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF512DA8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: h * 0.01),
-              Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: w * 0.06,
-                  vertical: h * 0.025,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Iniciar sesión',
-                      style: TextStyle(
-                        fontSize: w * 0.055,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: h * 0.02),
-                    _buildField(
-                      _emailCtrl,
-                      'Correo electrónico',
-                      Icons.email,
-                      w,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    SizedBox(height: h * 0.015),
-                    _buildField(
-                      _passCtrl,
-                      'Contraseña',
-                      Icons.lock,
-                      w,
-                      obscure: true,
-                    ),
-                    SizedBox(height: h * 0.03),
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context)
-                            .pushReplacementNamed('/welcome'),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      // Animación
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: SizedBox(
+                          width: w * 0.5,
+                          height: headerHeight * 0.77,
+                          child: Lottie.asset(
+                            'assets/cat_box.json',
+                            fit: BoxFit.contain,
                           ),
                         ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF9575CD),
-                                Color(0xFFD1C4E9),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Entrar',
+                      ),
+                      // Botón atrás
+                      Positioned(
+                        top: 10,
+                        left: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
+                        ),
+                      ),
+                      // Texto de bienvenida
+                      Positioned(
+                        top: headerHeight * 0.17,
+                        left: 32,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              '¡Bienvenido!',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: w * 0.045,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
                               ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Inicia sesión para continuar.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // TARJETA LOGIN
+                Container(
+                  width: w * 0.99,
+                  margin: const EdgeInsets.only(top: 0, bottom: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 40),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white,
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Iniciar sesión',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Input email
+                      _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
+                      const SizedBox(height: 16),
+                      // Input pass
+                      _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
+                          showPassword: _showPassword,
+                          togglePassword: () => setState(() => _showPassword = !_showPassword)),
+                      // Olvidaste contraseña
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(color: Color(0xFF78A3EB)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Botón iniciar
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _signInWithEmail,
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 50,
+                              child: _loading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white)
+                                  : const Text(
+                                      'Entrar',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 17),
+                                    ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: h * 0.025),
-                    Row(
-                      children: const [
-                        Expanded(child: Divider()),
+                      const SizedBox(height: 18),
+
+                      // Divider y social login
+                      Row(children: const [
+                        Expanded(child: Divider(thickness: 1.2)),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text('Continuar con'),
+                          child: Text('O ingresa con'),
                         ),
-                        Expanded(child: Divider()),
-                      ],
-                    ),
-                    SizedBox(height: h * 0.015),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: Image.asset('assets/google.png',
-                                width: 24, height: 24),
-                            label: const Text('Google'),
-                            style: OutlinedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                        Expanded(child: Divider(thickness: 1.2)),
+                      ]),
+                      const SizedBox(height: 12),
+
+                      // Botones sociales
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildSocialBtn('assets/facebook.png', () {}),
+                          const SizedBox(width: 14),
+                          _buildSocialBtn('assets/google.png', _signInWithGoogle),
+                          const SizedBox(width: 14),
+                          _buildSocialBtn('assets/apple.png', () {}),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Navegación a registro
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("¿No tienes cuenta?",
+                              style: TextStyle(fontSize: 15)),
+                          TextButton(
+                            onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
+                            child: const Text(
+                              'Regístrate',
+                              style: TextStyle(
+                                  color: Color(0xFF78A3EB),
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                        ),
-                        SizedBox(width: w * 0.04),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: Image.asset('assets/facebook.png',
-                                width: 24, height: 24),
-                            label: const Text('Facebook'),
-                            style: OutlinedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 20), // Espacio extra al final
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildField(
-    TextEditingController controller,
-    String hint,
-    IconData icon,
-    double w, {
-    TextInputType keyboardType = TextInputType.text,
-    bool obscure = false,
-  }) {
+  Widget _buildInput(TextEditingController c, String hint, IconData icon,
+      bool obscure,
+      {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscure,
+      controller: c,
+      obscureText: obscure && !showPassword,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF555555)),
+        prefixIcon: Icon(icon, color: const Color(0xFF78A3EB)),
+        suffixIcon: obscure
+            ? IconButton(
+                icon: Icon(
+                  showPassword ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xFF78A3EB),
+                ),
+                onPressed: togglePassword,
+              )
+            : null,
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        fillColor: const Color(0xFFF4F6FA),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSocialBtn(String asset, VoidCallback onTap) {
+    return Ink(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+      ),
+      child: IconButton(
+        icon: Image.asset(asset, width: 28, height: 28),
+        onPressed: onTap,
       ),
     );
   }
