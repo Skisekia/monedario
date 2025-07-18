@@ -59,224 +59,216 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
-    final headerHeight = h * 0.32;
+    final headerHeight = h * 0.29;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FF),
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: SingleChildScrollView(
-            child: Column(
+      body: Stack(
+        children: [
+          // 1. Fondo degradado en toda la pantalla
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFFBC2EB),
+                  Color(0xFF78A3EB),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+
+          // 2. Card blanco grande, encima del degradado, con borde superior redondeado
+          Positioned(
+            top: headerHeight - 38,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 34),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(44),
+                  topRight: Radius.circular(44),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Iniciar sesión',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
+                    const SizedBox(height: 16),
+                    _buildInput(
+                      _passCtrl,
+                      "Contraseña",
+                      Icons.lock,
+                      true,
+                      showPassword: _showPassword,
+                      togglePassword: () => setState(() => _showPassword = !_showPassword),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          '¿Olvidaste tu contraseña?',
+                          style: TextStyle(color: Color(0xFF78A3EB)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _signInWithEmail,
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: 50,
+                            child: _loading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text(
+                                    'Entrar',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 17),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(children: const [
+                      Expanded(child: Divider(thickness: 1.2)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('O ingresa con'),
+                      ),
+                      Expanded(child: Divider(thickness: 1.2)),
+                    ]),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildSocialBtn('assets/facebook.png', () {}),
+                        const SizedBox(width: 14),
+                        _buildSocialBtn('assets/google.png', _signInWithGoogle),
+                        const SizedBox(width: 14),
+                        _buildSocialBtn('assets/apple.png', () {}),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("¿No tienes cuenta?", style: TextStyle(fontSize: 15)),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
+                          child: const Text(
+                            'Regístrate',
+                            style: TextStyle(
+                                color: Color(0xFF78A3EB),
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Header degradado con Lottie y textos, sobre el fondo y DETRÁS del card
+          SizedBox(
+            height: headerHeight + 10,
+            child: Stack(
               children: [
-                // HEADER animado
-                SizedBox(
-                  height: headerHeight,
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: h,
-                        width: w,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFFFBC2EB),
-                              Color(0xFF78A3EB),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          
+                // Animación Lottie
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: SizedBox(
+                    width: w * 0.52,
+                    height: headerHeight * 0.73,
+                    child: Lottie.asset('assets/cat_box.json'),
+                  ),
+                ),
+                // Texto de bienvenida
+                Positioned(
+                  top: headerHeight * 0.23,
+                  left: 32,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        '¡Bienvenido!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // Animación
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: SizedBox(
-                          width: w * 0.5,
-                          height: headerHeight * 0.77,
-                          child: Lottie.asset(
-                            'assets/cat_box.json',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      // Botón atrás
-                      Positioned(
-                        top: 10,
-                        left: 8,
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
-                          onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
-                        ),
-                      ),
-                      // Texto de bienvenida
-                      Positioned(
-                        top: headerHeight * 0.17,
-                        left: 32,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              '¡Bienvenido!',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Inicia sesión para continuar.',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 17,
-                              ),
-                            ),
-                          ],
+                      SizedBox(height: 4),
+                      Text(
+                        'Inicia sesión para continuar.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 17,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // TARJETA LOGIN
-                Container(
-                  width: w * 0.99,
-                  margin: const EdgeInsets.only(top: 0, bottom: 20),
-                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 40),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white,
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Iniciar sesión',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Input email
-                      _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
-                      const SizedBox(height: 16),
-                      // Input pass
-                      _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
-                          showPassword: _showPassword,
-                          togglePassword: () => setState(() => _showPassword = !_showPassword)),
-                      // Olvidaste contraseña
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            '¿Olvidaste tu contraseña?',
-                            style: TextStyle(color: Color(0xFF78A3EB)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Botón iniciar
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _loading ? null : _signInWithEmail,
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: 50,
-                              child: _loading
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white)
-                                  : const Text(
-                                      'Entrar',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 17),
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Divider y social login
-                      Row(children: const [
-                        Expanded(child: Divider(thickness: 1.2)),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text('O ingresa con'),
-                        ),
-                        Expanded(child: Divider(thickness: 1.2)),
-                      ]),
-                      const SizedBox(height: 12),
-
-                      // Botones sociales
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSocialBtn('assets/facebook.png', () {}),
-                          const SizedBox(width: 14),
-                          _buildSocialBtn('assets/google.png', _signInWithGoogle),
-                          const SizedBox(width: 14),
-                          _buildSocialBtn('assets/apple.png', () {}),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Navegación a registro
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("¿No tienes cuenta?",
-                              style: TextStyle(fontSize: 15)),
-                          TextButton(
-                            onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
-                            child: const Text(
-                              'Regístrate',
-                              style: TextStyle(
-                                  color: Color(0xFF78A3EB),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                // Botón atrás
+                Positioned(
+                  top: 14,
+                  left: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
+
+  // MÉTODOS AUXILIARES DE INPUT Y BOTONES
 
   Widget _buildInput(TextEditingController c, String hint, IconData icon,
       bool obscure,
