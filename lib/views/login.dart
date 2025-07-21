@@ -197,7 +197,7 @@ class _LoginViewState extends State<LoginView> {
 
           // Header con imagen y texto
           SizedBox(
-            height: headerHeight + 103,
+            height: headerHeight + 85,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -207,7 +207,7 @@ class _LoginViewState extends State<LoginView> {
                   child: SizedBox(
                     width: w * 0.65,
                     height: headerHeight * 0.80,
-                    child: Image.asset('assets/cata_register.png', fit: BoxFit.contain),
+                    child: Image.asset('assets/polita_login.png', fit: BoxFit.contain),
                   ),
                 ),
                 Positioned(
