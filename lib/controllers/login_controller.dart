@@ -1,49 +1,46 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/material.dart';
 
 class LoginController {
   final TextEditingController emailCtrl;
   final TextEditingController passCtrl;
-  final VoidCallback onLoginSuccess;
-  final void Function(String) onError;
+
+  final VoidCallback onSuccess;
+  final Function(String) onError;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   LoginController({
     required this.emailCtrl,
     required this.passCtrl,
-    required this.onLoginSuccess,
+    required this.onSuccess,
     required this.onError,
   });
 
-  Future<void> signInWithEmail() async {
+  Future<void> loginUser(BuildContext context) async {
+    final email = emailCtrl.text.trim();
+    final pass = passCtrl.text.trim();
+
+    if (email.isEmpty || pass.isEmpty) {
+      onError("Completa ambos campos.");
+      return;
+    }
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailCtrl.text.trim(),
-        password: passCtrl.text.trim(),
-      );
-      onLoginSuccess();
+      await _auth.signInWithEmailAndPassword(email: email, password: pass);
+      onSuccess();
     } on FirebaseAuthException catch (e) {
-      onError(e.message ?? 'Error al iniciar sesión');
-    } catch (_) {
-      onError('Ocurrió un error inesperado');
+      String msg = "Error al iniciar sesión.";
+      if (e.code == 'user-not-found') msg = "Usuario no registrado.";
+      if (e.code == 'wrong-password') msg = "Contraseña incorrecta.";
+      if (e.code == 'invalid-email') msg = "Correo inválido.";
+      onError(msg);
+    } catch (e) {
+      onError("Error inesperado: ${e.toString()}");
     }
   }
 
   Future<void> signInWithGoogle() async {
-    try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) throw Exception('Cancelado por usuario');
-      final googleAuth = await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      onLoginSuccess();
-    } catch (_) {
-      onError('Ocurrió un error al iniciar sesión con Google');
-    }
+    // Aquí también puedes implementar Google Sign-In para login
   }
 }

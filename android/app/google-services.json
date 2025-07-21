@@ -12,7 +12,20 @@
           "package_name": "com.siclary.Monedario"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "872567223101-6evfhafs25s9gv166gako8g6rv68f86e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.siclary.Monedario",
+            "certificate_hash": "4c03612732610301fd5f6a541ccb7f0eec47833e"
+          }
+        },
+        {
+          "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC6tustW851rjFZ84YfTDH7gVllbfVLjD8"
@@ -20,7 +33,49 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:872567223101:android:ee6b5fc6c2b96883968b54",
+        "android_client_info": {
+          "package_name": "com.siclary.monedario"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "872567223101-jth2bnvvbqk2ik185lsgof157tqvg2kq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.siclary.monedario",
+            "certificate_hash": "4c03612732610301fd5f6a541ccb7f0eec47833e"
+          }
+        },
+        {
+          "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6tustW851rjFZ84YfTDH7gVllbfVLjD8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../controllers/login_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -13,6 +14,34 @@ class _LoginViewState extends State<LoginView> {
   bool _showPassword = false;
   bool _loading = false;
 
+  late LoginController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = LoginController(
+      emailCtrl: _emailCtrl,
+      passCtrl: _passCtrl,
+      onSuccess: () {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
+      },
+      onError: (msg) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        setState(() => _loading = false);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -26,10 +55,7 @@ class _LoginViewState extends State<LoginView> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFFFBC2EB),
-                  Color(0xFF78A3EB),
-                ],
+                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -50,33 +76,20 @@ class _LoginViewState extends State<LoginView> {
                   topLeft: Radius.circular(44),
                   topRight: Radius.circular(44),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, -4),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4))],
               ),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 12),
-
-                    // Título alineado a la izquierda
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Iniciar sesión',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 35,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
                       ),
                     ),
-                    const SizedBox(height: 8),
-
                     const SizedBox(height: 24),
 
                     _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
@@ -93,26 +106,27 @@ class _LoginViewState extends State<LoginView> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {}, // conectar con controlador
-                        child: const Text(
-                          '¿Olvidaste tu contraseña?',
-                          style: TextStyle(color: Color(0xFF78A3EB)),
-                        ),
+                        onPressed: () {}, // Puedes conectar recuperar contraseña
+                        child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Color(0xFF78A3EB))),
                       ),
                     ),
 
                     const SizedBox(height: 4),
 
+                    // BOTÓN ENTRAR
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {}, // conectar con controlador
+                        onPressed: _loading
+                            ? null
+                            : () async {
+                                setState(() => _loading = true);
+                                await _controller.loginUser(context);
+                              },
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           padding: EdgeInsets.zero,
                         ),
                         child: Ink(
@@ -129,10 +143,7 @@ class _LoginViewState extends State<LoginView> {
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : const Text(
                                     'Entrar',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 17,
-                                    ),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                                   ),
                           ),
                         ),
@@ -173,10 +184,7 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
                           child: const Text(
                             'Regístrate',
-                            style: TextStyle(
-                              color: Color(0xFF78A3EB),
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Color(0xFF78A3EB), fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -187,27 +195,21 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          // Encabezado con imagen y textos
+          // Header con imagen y texto
           SizedBox(
-            height: headerHeight + 60,
+            height: headerHeight + 103,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Imagen del gato con repisa bajada
                 Positioned(
                   bottom: 20,
-                  right: 16, // Alineado a la derecha
+                  right: 16,
                   child: SizedBox(
                     width: w * 0.65,
-                    height: headerHeight * 0.65,
-                    child: Image.asset(
-                      'assets/cat_login.png',
-                      fit: BoxFit.contain,
-                    ),
+                    height: headerHeight * 0.80,
+                    child: Image.asset('assets/cata_register.png', fit: BoxFit.contain),
                   ),
                 ),
-
-                // Texto de bienvenida
                 Positioned(
                   top: headerHeight * 0.22,
                   left: 32,
@@ -216,25 +218,13 @@ class _LoginViewState extends State<LoginView> {
                     children: const [
                       Text(
                         '¡Bienvenido!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 4),
-                      Text(
-                        'Inicia sesión para continuar.',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 17,
-                        ),
-                      ),
+                      Text('Inicia sesión para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
                     ],
                   ),
                 ),
-
-                // Botón de retroceso
                 Positioned(
                   top: 14,
                   left: 8,

@@ -1,6 +1,6 @@
 {
-    "name": "monedariof",
-    "short_name": "monedariof",
+    "name": "monedario",
+    "short_name": "monedario",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

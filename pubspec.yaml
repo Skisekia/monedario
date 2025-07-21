@@ -1,4 +1,4 @@
-name: monedariof
+name: monedario
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -31,15 +31,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/cat_typing.json
+   
     - assets/google.png
     - assets/facebook.png
-    - assets/iconhome.png
     - assets/apple.png
-    - assets/welcome.json
-    - assets/cat_box.json
-    - assets/graph_welcome.json
-    - assets/imahome.jpg
-    - assets/panel.json
-    - assets/alcancia.png
-    - assets/cat_login.png
+    - assets/cata_register.png

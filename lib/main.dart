@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';           // <-- Import necesario
+import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';  
+import 'firebase_options.dart';       // <-- Import necesario
 import 'package:provider/provider.dart';
 
 // Rutas
@@ -16,9 +18,13 @@ import 'controllers/auth_controller.dart';
 // Tema
 import 'ui/theme.dart';
 
+
 void main() async {
   // Asegura que Flutter esté inicializado antes de tocar SystemChrome
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Bloquear solo modo retrato (arriba y abajo)
   await SystemChrome.setPreferredOrientations([

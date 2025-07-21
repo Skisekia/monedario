@@ -57,7 +57,7 @@ class Welcome extends StatelessWidget {
               SizedBox(
                 height: h * 0.35,
                 child: Image.asset(
-                  'assets/cat_login.png', // usa aquí la imagen del gato que me mostraste
+                  'assets/cata_register.png', // usa aquí la imagen del gato que me mostraste
                   fit: BoxFit.contain,
                 ),
               ),

@@ -1,4 +1,4 @@
-package com.siclary.Monedario
+package com.siclary.monedario
 
 import io.flutter.embedding.android.FlutterActivity
 
