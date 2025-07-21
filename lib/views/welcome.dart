@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 class Welcome extends StatelessWidget {
   const Welcome({super.key});
@@ -11,106 +10,116 @@ class Welcome extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
               Color(0xFFFBC2EB),
               Color(0xFF78A3EB),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              SizedBox(height: h * 0.045),
-              Text(
-                'Bienvenido a Monedario',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: w * 0.072,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: h * 0.045),
-              Lottie.asset(
-                'assets/panel.json',
-                width: w * 0.90,
-                height: h * 0.50,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: h * 0.02),
+              SizedBox(height: h * 0.04),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: w * 0.14),
-                child: Text(
-                  'Organiza tus finanzas, visualiza tu progreso y alcanza tus metas.',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: w * 0.041,
-                    color: Colors.white.withOpacity(0.85),
-                    height: 1.35,
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '¡Bienvenido!',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: w * 0.1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: h * 0.06),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: w * 0.15),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Inicia sesión para continuar.',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: w * 0.045,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: h * 0.04),
+              SizedBox(
+                height: h * 0.35,
+                child: Image.asset(
+                  'assets/cat_login.png', // usa aquí la imagen del gato que me mostraste
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: w * 0.1),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () =>
-                        Navigator.pushReplacementNamed(context, '/login'),
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                  height: 50,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFBC2EB),
+                          Color(0xFF78A3EB),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFBC2EB),
-                            Color(0xFF78A3EB),
-                          ],
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(38),
+
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                        borderRadius: BorderRadius.circular(18),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
                       ),
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Comenzar',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 0.7,
-                          ),
+                      child: const Text(
+                        '¡Comenzar!',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
               const Text(
                 'App versión 1.0.1',
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 13,
                   color: Colors.white70,
                   fontFamily: 'Poppins',
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

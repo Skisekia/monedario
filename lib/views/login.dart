@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
+
   @override
   State<LoginView> createState() => _LoginViewState();
 }
@@ -12,59 +10,19 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  bool _loading = false;
   bool _showPassword = false;
-
-  Future<void> _signInWithGoogle() async {
-    setState(() => _loading = true);
-    try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) throw Exception('Cancelado por usuario');
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } catch (e) {
-      _showError('Ocurrió un error al iniciar sesión con Google');
-    }
-    setState(() => _loading = false);
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
-  Future<void> _signInWithEmail() async {
-    setState(() => _loading = true);
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text.trim(),
-      );
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Error');
-    } catch (_) {
-      _showError('Ocurrió un error');
-    }
-    setState(() => _loading = false);
-  }
+  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
-    final headerHeight = h * 0.29;
+    final headerHeight = h * 0.35;
 
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Fondo degradado en toda la pantalla
+          // Fondo degradado
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -78,14 +36,14 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          // 2. Card blanco grande, encima del degradado, con borde superior redondeado
+          // Tarjeta blanca inferior
           Positioned(
-            top: headerHeight - 38,
+            top: headerHeight - 45,
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 34),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -105,15 +63,22 @@ class _LoginViewState extends State<LoginView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 12),
-                    const Text(
-                      'Iniciar sesión',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 26,
+
+                    // Título alineado a la izquierda
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Iniciar sesión',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 35,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 8),
+
                     const SizedBox(height: 24),
+
                     _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
                     const SizedBox(height: 16),
                     _buildInput(
@@ -124,22 +89,25 @@ class _LoginViewState extends State<LoginView> {
                       showPassword: _showPassword,
                       togglePassword: () => setState(() => _showPassword = !_showPassword),
                     ),
+
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {}, // conectar con controlador
                         child: const Text(
                           '¿Olvidaste tu contraseña?',
                           style: TextStyle(color: Color(0xFF78A3EB)),
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _loading ? null : _signInWithEmail,
+                        onPressed: () {}, // conectar con controlador
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -162,14 +130,17 @@ class _LoginViewState extends State<LoginView> {
                                 : const Text(
                                     'Entrar',
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 17),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                    ),
                                   ),
                           ),
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 18),
+
                     Row(children: const [
                       Expanded(child: Divider(thickness: 1.2)),
                       Padding(
@@ -178,18 +149,22 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       Expanded(child: Divider(thickness: 1.2)),
                     ]),
+
                     const SizedBox(height: 12),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildSocialBtn('assets/facebook.png', () {}),
                         const SizedBox(width: 14),
-                        _buildSocialBtn('assets/google.png', _signInWithGoogle),
+                        _buildSocialBtn('assets/google.png', () {}),
                         const SizedBox(width: 14),
                         _buildSocialBtn('assets/apple.png', () {}),
                       ],
                     ),
+
                     const SizedBox(height: 20),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -199,8 +174,9 @@ class _LoginViewState extends State<LoginView> {
                           child: const Text(
                             'Regístrate',
                             style: TextStyle(
-                                color: Color(0xFF78A3EB),
-                                fontWeight: FontWeight.bold),
+                              color: Color(0xFF78A3EB),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -211,23 +187,29 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          // 3. Header degradado con Lottie y textos, sobre el fondo y DETRÁS del card
+          // Encabezado con imagen y textos
           SizedBox(
-            height: headerHeight + 10,
+            height: headerHeight + 60,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Animación Lottie
-                Align(
-                  alignment: Alignment.bottomRight,
+                // Imagen del gato con repisa bajada
+                Positioned(
+                  bottom: 20,
+                  right: 16, // Alineado a la derecha
                   child: SizedBox(
-                    width: w * 0.52,
-                    height: headerHeight * 0.73,
-                    child: Lottie.asset('assets/cat_box.json'),
+                    width: w * 0.65,
+                    height: headerHeight * 0.65,
+                    child: Image.asset(
+                      'assets/cat_login.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
+
                 // Texto de bienvenida
                 Positioned(
-                  top: headerHeight * 0.23,
+                  top: headerHeight * 0.22,
                   left: 32,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +218,7 @@ class _LoginViewState extends State<LoginView> {
                         '¡Bienvenido!',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 32,
+                          fontSize: 42,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -251,7 +233,8 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                 ),
-                // Botón atrás
+
+                // Botón de retroceso
                 Positioned(
                   top: 14,
                   left: 8,
@@ -268,11 +251,14 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  // MÉTODOS AUXILIARES DE INPUT Y BOTONES
-
-  Widget _buildInput(TextEditingController c, String hint, IconData icon,
-      bool obscure,
-      {bool showPassword = false, VoidCallback? togglePassword}) {
+  Widget _buildInput(
+    TextEditingController c,
+    String hint,
+    IconData icon,
+    bool obscure, {
+    bool showPassword = false,
+    VoidCallback? togglePassword,
+  }) {
     return TextField(
       controller: c,
       obscureText: obscure && !showPassword,
