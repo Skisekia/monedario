@@ -55,7 +55,7 @@ class _LoginViewState extends State<LoginView> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
+                colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -132,7 +132,7 @@ class _LoginViewState extends State<LoginView> {
                         child: Ink(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
+                              colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
                             ),
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -143,7 +143,7 @@ class _LoginViewState extends State<LoginView> {
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : const Text(
                                     'Entrar',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
                                   ),
                           ),
                         ),

@@ -9,13 +9,13 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  // Controladores de campos de texto
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _pass2Ctrl = TextEditingController();
+  String _selectedGender = 'Masculino';
 
-  // Estados para mostrar/ocultar contraseñas y loading
   bool _showPassword = false;
   bool _showPassword2 = false;
   bool _loading = false;
@@ -25,8 +25,6 @@ class _RegisterViewState extends State<RegisterView> {
   @override
   void initState() {
     super.initState();
-
-    // Instancia del controlador
     _controller = RegisterController(
       emailCtrl: _emailCtrl,
       passCtrl: _passCtrl,
@@ -46,9 +44,9 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   void dispose() {
-    // Liberar recursos
     _nameCtrl.dispose();
     _emailCtrl.dispose();
+    _phoneCtrl.dispose();
     _passCtrl.dispose();
     _pass2Ctrl.dispose();
     super.dispose();
@@ -56,130 +54,111 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
-    final headerHeight = h * 0.35;
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Fondo degradado rosa-azul
+          // FONDO con degradado arriba
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // Card blanco inferior
+          // Imagen ilustrativa (más grande)
+          SizedBox(
+            height: headerHeight  + 85,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
           Positioned(
-            top: headerHeight - 45,
+                  bottom: 20,
+                  right: 16,
+                  child: SizedBox(
+                    width: w * 0.65,
+                    height: headerHeight * 0.80,
+                    child: Image.asset('assets/polita_login.png', fit: BoxFit.contain),
+                  ),
+                ),
+          // Texto arriba de la tarjeta
+          Positioned(
+             top: headerHeight * 0.22,
+            left: 32,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Crea tu cuenta',
+                  style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text('Crea una cuenta para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
+              ],
+            ),
+          ),
+          // Botón retroceso
+          Positioned(
+            top: 14,
+            left: 8,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
+            ),
+          ),
+
+          // CARD blanco con campos
+          Positioned(
+            top: 100,
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: isTablet ? 48 : 32, vertical: 10),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(44),
                   topRight: Radius.circular(44),
                 ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4)),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4))],
               ),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 12),
-
-                    // Título
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Registro',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
-                      ),
-                    ),
+                    const SizedBox(height: 20),
+                    Text('Registro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: isTablet ? 36 : 30)),
                     const SizedBox(height: 24),
-
-                    // Campos de entrada
                     _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
                     const SizedBox(height: 15),
                     _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
                     const SizedBox(height: 15),
-                    _buildInput(
-                      _passCtrl, "Contraseña", Icons.lock, true,
-                      showPassword: _showPassword,
-                      togglePassword: () => setState(() => _showPassword = !_showPassword),
-                    ),
+                    _buildInput(_phoneCtrl, "Número de teléfono", Icons.phone, false),
                     const SizedBox(height: 15),
-                    _buildInput(
-                      _pass2Ctrl, "Repite la contraseña", Icons.lock_outline, true,
-                      showPassword: _showPassword2,
-                      togglePassword: () => setState(() => _showPassword2 = !_showPassword2),
-                    ),
-
+                    _buildDropdownSexo(),
+                    const SizedBox(height: 15),
+                    _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
+                        showPassword: _showPassword,
+                        togglePassword: () => setState(() => _showPassword = !_showPassword)),
+                    const SizedBox(height: 15),
+                    _buildInput(_pass2Ctrl, "Repite la contraseña", Icons.lock_outline, true,
+                        showPassword: _showPassword2,
+                        togglePassword: () => setState(() => _showPassword2 = !_showPassword2)),
                     const SizedBox(height: 25),
-
-                    // Botón de registro
-                                    SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _loading
-                        ? null
-                        : () async {
-                            setState(() => _loading = true);
-                            await _controller.registerUser(context);
-                          },
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFBC2EB), Color(0xFF78A3EB)],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: 50,
-                        child: _loading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                                'Registrarme',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-
+                    _buildRegisterButton(),
                     const SizedBox(height: 18),
-
-                    // Divider con texto
                     Row(children: const [
                       Expanded(child: Divider(thickness: 1.2)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('O regístrate con'),
-                      ),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('O regístrate con')),
                       Expanded(child: Divider(thickness: 1.2)),
                     ]),
                     const SizedBox(height: 12),
-
-                    // Botones sociales
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -193,23 +172,18 @@ class _RegisterViewState extends State<RegisterView> {
                         _buildSocialBtn('assets/apple.png', () {}),
                       ],
                     ),
-
                     const SizedBox(height: 20),
-
-                    // Enlace para iniciar sesión
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text("¿Ya tienes cuenta?", style: TextStyle(fontSize: 15)),
                         TextButton(
                           onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                          child: const Text(
-                            'Inicia sesión',
-                            style: TextStyle(
-                              color: Color(0xFF78A3EB),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: const Text('Inicia sesión',
+                              style: TextStyle(
+                                color: Color(0xFF78A3EB),
+                                fontWeight: FontWeight.bold,
+                              )),
                         ),
                       ],
                     ),
@@ -218,92 +192,24 @@ class _RegisterViewState extends State<RegisterView> {
               ),
             ),
           ),
-
-          // Header con imagen y texto
-          SizedBox(
-            height: headerHeight + 103,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Imagen decorativa a la derecha
-                Positioned(
-                  bottom: 20,
-                  right: 16,
-                  child: SizedBox(
-                    width: w * 0.65,
-                    height: headerHeight * 0.80,
-                    child: Image.asset(
-                      'assets/cata_register.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-
-                // Texto superior izquierdo
-                Positioned(
-                  top: headerHeight * 0.22,
-                  left: 32,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Crear cuenta',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Regístrate gratis y comienza hoy.',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 17,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Botón de retroceso
-                Positioned(
-                  top: 14,
-                  left: 8,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 
-  /// Campo de texto reutilizable
-  Widget _buildInput(
-    TextEditingController c,
-    String hint,
-    IconData icon,
-    bool obscure, {
-    bool showPassword = false,
-    VoidCallback? togglePassword,
-  }) {
+  Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
+      {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
       controller: c,
       obscureText: obscure && !showPassword,
+      style: const TextStyle(color: Color(0xFF1B1D28)),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF1B1D28)),
         prefixIcon: Icon(icon, color: const Color(0xFF78A3EB)),
         suffixIcon: obscure
             ? IconButton(
-                icon: Icon(
-                  showPassword ? Icons.visibility : Icons.visibility_off,
-                  color: const Color(0xFF78A3EB),
-                ),
+                icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off, color: const Color(0xFF78A3EB)),
                 onPressed: togglePassword,
               )
             : null,
@@ -318,7 +224,57 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
-  /// Botón social redondo con sombra
+  Widget _buildDropdownSexo() {
+    return DropdownButtonFormField<String>(
+      value: _selectedGender,
+      style: const TextStyle(color: Color(0xFF1B1D28), fontSize: 16),
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF78A3EB)),
+        filled: true,
+        fillColor: const Color(0xFFF4F6FA),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
+        DropdownMenuItem(value: 'Femenino', child: Text('Femenino')),
+        DropdownMenuItem(value: 'Otro', child: Text('Otro')),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          setState(() => _selectedGender = value);
+        }
+      },
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _loading ? null : () async {
+          setState(() => _loading = true);
+          await _controller.registerUser(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF78A3EB),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 2,
+        ),
+        child: _loading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Registrarme',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
+              ),
+      ),
+    );
+  }
+
   Widget _buildSocialBtn(String asset, VoidCallback onTap) {
     return Ink(
       decoration: BoxDecoration(
