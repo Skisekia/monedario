@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controllers/register_controller.dart';
 
+// ===============================
+//         RegisterView
+// ===============================
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -9,17 +12,18 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
+  // ===============================
+  //   Controllers & Variables
+  // ===============================
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _pass2Ctrl = TextEditingController();
   String _selectedGender = 'Masculino';
-
   bool _showPassword = false;
   bool _showPassword2 = false;
   bool _loading = false;
-
   late RegisterController _controller;
 
   @override
@@ -52,15 +56,20 @@ class _RegisterViewState extends State<RegisterView> {
     super.dispose();
   }
 
+  // ===============================
+  //             UI
+  // ===============================
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isTablet = size.width > 600;
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
+    final headerHeight = h * 0.35;
 
     return Scaffold(
       body: Stack(
+        clipBehavior: Clip.none, // 
         children: [
-          // FONDO con degradado arriba
+          // ----- Fondo Degradado -----
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -71,61 +80,17 @@ class _RegisterViewState extends State<RegisterView> {
             ),
           ),
 
-          // Imagen ilustrativa (más grande)
-          SizedBox(
-            height: headerHeight  + 85,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
+          // ----- Card blanco inferior (detrás de la imagen) -----
           Positioned(
-                  bottom: 20,
-                  right: 16,
-                  child: SizedBox(
-                    width: w * 0.65,
-                    height: headerHeight * 0.80,
-                    child: Image.asset('assets/polita_login.png', fit: BoxFit.contain),
-                  ),
-                ),
-          // Texto arriba de la tarjeta
-          Positioned(
-             top: headerHeight * 0.22,
-            left: 32,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Crea tu cuenta',
-                  style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
-                Text('Crea una cuenta para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
-              ],
-            ),
-          ),
-          // Botón retroceso
-          Positioned(
-            top: 14,
-            left: 8,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
-              onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
-            ),
-          ),
-
-          // CARD blanco con campos
-          Positioned(
-            top: 100,
+            top: headerHeight - 45,
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: isTablet ? 48 : 32, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(44),
-                  topRight: Radius.circular(44),
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(44), topRight: Radius.circular(44)),
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4))],
               ),
               child: SingleChildScrollView(
@@ -133,7 +98,7 @@ class _RegisterViewState extends State<RegisterView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 20),
-                    Text('Registro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: isTablet ? 36 : 30)),
+                    const Text('Registro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35)),
                     const SizedBox(height: 24),
                     _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
                     const SizedBox(height: 15),
@@ -180,10 +145,7 @@ class _RegisterViewState extends State<RegisterView> {
                         TextButton(
                           onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                           child: const Text('Inicia sesión',
-                              style: TextStyle(
-                                color: Color(0xFF78A3EB),
-                                fontWeight: FontWeight.bold,
-                              )),
+                              style: TextStyle(color: Color(0xFF78A3EB), fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -192,11 +154,53 @@ class _RegisterViewState extends State<RegisterView> {
               ),
             ),
           ),
+
+          // ----- Ilustración ENCIMA del Card -----
+          SizedBox(
+            height: headerHeight + 110,
+            child: Stack(
+              clipBehavior: Clip.none, //  permite sobresalir la imagen
+              children: [
+                Positioned(
+                  bottom: -10, //  sobresale la imagen hacia el card
+                  right: 16,
+                  child: SizedBox(
+                    width: w * 0.72,
+                    height: headerHeight * 1.05,
+                    child: Image.asset('assets/cata_register.png', fit: BoxFit.contain),
+                  ),
+                ),
+                Positioned(
+                  top: headerHeight * 0.22,
+                  left: 32,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Crea tu cuenta', style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
+                      Text('Crea una cuenta para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
+  // ===============================
+  //        Widgets Auxiliares
+  // ===============================
   Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
@@ -244,9 +248,7 @@ class _RegisterViewState extends State<RegisterView> {
         DropdownMenuItem(value: 'Otro', child: Text('Otro')),
       ],
       onChanged: (value) {
-        if (value != null) {
-          setState(() => _selectedGender = value);
-        }
+        if (value != null) setState(() => _selectedGender = value);
       },
     );
   }
@@ -267,10 +269,7 @@ class _RegisterViewState extends State<RegisterView> {
         ),
         child: _loading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'Registrarme',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
-              ),
+            : const Text('Registrarme', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
       ),
     );
   }

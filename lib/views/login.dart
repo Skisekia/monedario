@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controllers/login_controller.dart';
 
+// ===============================
+//           LoginView
+// ===============================
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -9,17 +12,18 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  // ===============================
+  //   Controllers & Variables
+  // ===============================
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _showPassword = false;
   bool _loading = false;
-
   late LoginController _controller;
 
   @override
   void initState() {
     super.initState();
-
     _controller = LoginController(
       emailCtrl: _emailCtrl,
       passCtrl: _passCtrl,
@@ -42,6 +46,9 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  // ===============================
+  //           UI
+  // ===============================
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -51,7 +58,7 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fondo degradado
+          // ----- Fondo Degradado -----
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -62,7 +69,7 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          // Tarjeta blanca inferior
+          // ----- Card blanco inferior -----
           Positioned(
             top: headerHeight - 45,
             left: 0,
@@ -72,10 +79,7 @@ class _LoginViewState extends State<LoginView> {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(44),
-                  topRight: Radius.circular(44),
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(44), topRight: Radius.circular(44)),
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4))],
               ),
               child: SingleChildScrollView(
@@ -83,47 +87,31 @@ class _LoginViewState extends State<LoginView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 12),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Iniciar sesión',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
-                      ),
-                    ),
+                    const Text('Iniciar sesión', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35)),
                     const SizedBox(height: 24),
-
                     _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
                     const SizedBox(height: 16),
-                    _buildInput(
-                      _passCtrl,
-                      "Contraseña",
-                      Icons.lock,
-                      true,
-                      showPassword: _showPassword,
-                      togglePassword: () => setState(() => _showPassword = !_showPassword),
-                    ),
-
+                    _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
+                        showPassword: _showPassword,
+                        togglePassword: () => setState(() => _showPassword = !_showPassword)),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {}, // Puedes conectar recuperar contraseña
+                        onPressed: () {},
                         child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Color(0xFF78A3EB))),
                       ),
                     ),
-
                     const SizedBox(height: 4),
 
-                    // BOTÓN ENTRAR
+                    // ----- Botón Entrar -----
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _loading
-                            ? null
-                            : () async {
-                                setState(() => _loading = true);
-                                await _controller.loginUser(context);
-                              },
+                        onPressed: _loading ? null : () async {
+                          setState(() => _loading = true);
+                          await _controller.loginUser(context);
+                        },
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -131,9 +119,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         child: Ink(
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
-                            ),
+                            gradient: const LinearGradient(colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)]),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Container(
@@ -141,26 +127,18 @@ class _LoginViewState extends State<LoginView> {
                             height: 50,
                             child: _loading
                                 ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text(
-                                    'Entrar',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
-                                  ),
+                                : const Text('Entrar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
                           ),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 18),
-
                     Row(children: const [
                       Expanded(child: Divider(thickness: 1.2)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('O ingresa con'),
-                      ),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('O ingresa con')),
                       Expanded(child: Divider(thickness: 1.2)),
                     ]),
-
                     const SizedBox(height: 12),
 
                     Row(
@@ -175,17 +153,13 @@ class _LoginViewState extends State<LoginView> {
                     ),
 
                     const SizedBox(height: 20),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text("¿No tienes cuenta?", style: TextStyle(fontSize: 15)),
                         TextButton(
                           onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
-                          child: const Text(
-                            'Regístrate',
-                            style: TextStyle(color: Color(0xFF78A3EB), fontWeight: FontWeight.bold),
-                          ),
+                          child: const Text('Regístrate', style: TextStyle(color: Color(0xFF78A3EB), fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -195,7 +169,7 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          // Header con imagen y texto
+          // ----- Encabezado con imagen y texto -----
           SizedBox(
             height: headerHeight + 85,
             child: Stack(
@@ -216,10 +190,7 @@ class _LoginViewState extends State<LoginView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text(
-                        '¡Bienvenido!',
-                        style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold),
-                      ),
+                      Text('¡Bienvenido!', style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
                       SizedBox(height: 4),
                       Text('Inicia sesión para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
                     ],
@@ -241,14 +212,11 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  Widget _buildInput(
-    TextEditingController c,
-    String hint,
-    IconData icon,
-    bool obscure, {
-    bool showPassword = false,
-    VoidCallback? togglePassword,
-  }) {
+  // ===============================
+  //     Widgets Auxiliares
+  // ===============================
+  Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
+      {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
       controller: c,
       obscureText: obscure && !showPassword,
@@ -257,10 +225,7 @@ class _LoginViewState extends State<LoginView> {
         prefixIcon: Icon(icon, color: const Color(0xFF78A3EB)),
         suffixIcon: obscure
             ? IconButton(
-                icon: Icon(
-                  showPassword ? Icons.visibility : Icons.visibility_off,
-                  color: const Color(0xFF78A3EB),
-                ),
+                icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off, color: const Color(0xFF78A3EB)),
                 onPressed: togglePassword,
               )
             : null,
