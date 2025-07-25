@@ -1,12 +1,17 @@
-// views/dashboard.dart
 import 'package:flutter/material.dart';
+import '../../models/user_model.dart';
+import '../../utils/icon_mapper.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userName = "Bill Paxton"; // ← esto luego vendrá de tu modelo de usuario
+    final UserModel user = UserModel(
+      name: 'Mauricio Briones',
+      gender: 'Masculino',
+      provider: 'google', // puede ser google, facebook, apple o email
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -16,15 +21,13 @@ class Dashboard extends StatelessWidget {
         elevation: 0,
         title: Row(
           children: [
-            const CircleAvatar(
-              backgroundImage: AssetImage('assets/profile.png'), // o imagen de red
-            ),
+            getUserIcon(user.gender, user.provider),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hello $userName', style: const TextStyle(fontWeight: FontWeight.bold)),
-                const Text('Welcome back!', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text('Hola ${user.name.split(' ')[0]} 👋', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Bienvenido de nuevo', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ],
@@ -32,65 +35,48 @@ class Dashboard extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.grid_view_rounded),
-            onPressed: () {
-              // futuras acciones
-            },
+            onPressed: () {},
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 📊 Activity Widget
-            Row(
-              children: [
-                _buildActivityCard(),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildInfoBox(
-                        icon: Icons.fastfood,
-                        label: 'Food Last Week',
-                        amount: '\$18.4',
-                        color: Colors.purple[100]!,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildInfoBox(
-                        icon: Icons.paid,
-                        label: 'Revenue Last Week',
-                        amount: '\$18.4',
-                        color: Colors.green[100]!,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            // 📊 Balance general
+            _buildBalanceChartPlaceholder(),
+
             const SizedBox(height: 24),
 
-            // 🧾 Transactions
-            _buildTransactionTile("Spotify Premium", "-\$3", "Entertainment / Music", "14:00 6 Jul", "assets/spotify.png"),
-            _buildTransactionTile("Netflix", "-\$6", "Entertainment / Film", "14:00 6 Jul", "assets/netflix.png"),
+            // 📅 Calendario con fechas de pago
+            _buildCalendarPlaceholder(context),
+
+            const SizedBox(height: 24),
+
+            // 🧾 Últimas transacciones
+            const Text("Últimos movimientos", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            _buildTransactionTile("Spotify Premium", "-\$3", "Entretenimiento", "14:00 6 Jul", Icons.music_note),
+            _buildTransactionTile("Pago luz", "-\$8", "Servicios", "13:00 5 Jul", Icons.lightbulb),
           ],
         ),
       ),
 
-      // ➕ Botón flotante para agregar ingreso, deuda, etc.
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.pinkAccent,
-        onPressed: () {
-          Navigator.pushNamed(context, '/add_transaction_menu');
-        },
+        onPressed: () => Navigator.pushNamed(context, '/add_transaction_menu'),
         child: const Icon(Icons.add, size: 32),
       ),
 
-      // 🔽 Navegación inferior
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         onTap: (index) {
-          // Aquí puedes navegar a /dashboard, /charts, /settings, etc.
+          switch (index) {
+            case 0: break;
+            case 1: Navigator.pushNamed(context, '/statistics_view'); break;
+            case 2: Navigator.pushNamed(context, '/settings_view'); break;
+          }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ''),
@@ -101,57 +87,57 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityCard() {
+  Widget _buildBalanceChartPlaceholder() {
     return Container(
-      width: 140,
-      height: 160,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE5E5),
+        color: Colors.indigo[50],
         borderRadius: BorderRadius.circular(20),
       ),
+      width: double.infinity,
       child: Column(
-        children: [
-          const Text("Activity", style: TextStyle(fontWeight: FontWeight.bold)),
-          const Text("of Current Week", style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const Spacer(),
-          // Puedes agregar una bar chart aquí con un paquete
-          Image.asset('assets/bar_chart.png', height: 70), // reemplazar con gráfico real si quieres
+        children: const [
+          Text("Balance Mensual", style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 12),
+          Icon(Icons.bar_chart_rounded, size: 80, color: Colors.indigo),
+          Text("Aquí irá la gráfica de ingresos vs egresos", style: TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
     );
   }
 
-  Widget _buildInfoBox({required IconData icon, required String label, required String amount, required Color color}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 24),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(fontSize: 12)),
-              Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
+  Widget _buildCalendarPlaceholder(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/payment_calendar_detail'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange[50],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        width: double.infinity,
+        child: Column(
+          children: const [
+            Text("Calendario de pagos", style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 12),
+            Icon(Icons.calendar_month_rounded, size: 80, color: Colors.orange),
+            Text("Tap para ver detalles", style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTransactionTile(String title, String amount, String category, String time, String iconAsset) {
+  Widget _buildTransactionTile(String title, String amount, String category, String time, IconData iconData) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 0.5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListTile(
-        leading: CircleAvatar(backgroundImage: AssetImage(iconAsset), radius: 24),
+        leading: CircleAvatar(
+          backgroundColor: Colors.grey[200],
+          child: Icon(iconData, color: Colors.grey[800]),
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(category),
         trailing: Column(

@@ -1,9 +1,7 @@
+// Agrega esto arriba de tu clase
 import 'package:flutter/material.dart';
 import '../controllers/register_controller.dart';
 
-// ===============================
-//         RegisterView
-// ===============================
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -12,9 +10,6 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  // ===============================
-  //   Controllers & Variables
-  // ===============================
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -34,9 +29,11 @@ class _RegisterViewState extends State<RegisterView> {
       passCtrl: _passCtrl,
       pass2Ctrl: _pass2Ctrl,
       nameCtrl: _nameCtrl,
+      phoneCtrl: _phoneCtrl,
+      gender: _selectedGender,
       onSuccess: () {
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/dashboard');
+          Navigator.pushReplacementNamed(context, '/login'); // Ir al login despues registro exitoso
         }
       },
       onError: (msg) {
@@ -56,151 +53,154 @@ class _RegisterViewState extends State<RegisterView> {
     super.dispose();
   }
 
-  // ===============================
-  //             UI
-  // ===============================
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
-    final headerHeight = h * 0.35;
-
     return Scaffold(
-      body: Stack(
-        clipBehavior: Clip.none, // 
-        children: [
-          // ----- Fondo Degradado -----
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 600;
+          final headerHeight = isTablet ? 280.0 : 230.0;
+          final imageHeight = isTablet ? 200.0 : 160.0;
 
-          // ----- Card blanco inferior (detrás de la imagen) -----
-          Positioned(
-            top: headerHeight - 45,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(44), topRight: Radius.circular(44)),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4))],
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Fondo degradado
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF78A3EB), Color(0xFF78A3EB)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 20),
-                    const Text('Registro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35)),
-                    const SizedBox(height: 24),
-                    _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
-                    const SizedBox(height: 15),
-                    _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
-                    const SizedBox(height: 15),
-                    _buildInput(_phoneCtrl, "Número de teléfono", Icons.phone, false),
-                    const SizedBox(height: 15),
-                    _buildDropdownSexo(),
-                    const SizedBox(height: 15),
-                    _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
-                        showPassword: _showPassword,
-                        togglePassword: () => setState(() => _showPassword = !_showPassword)),
-                    const SizedBox(height: 15),
-                    _buildInput(_pass2Ctrl, "Repite la contraseña", Icons.lock_outline, true,
-                        showPassword: _showPassword2,
-                        togglePassword: () => setState(() => _showPassword2 = !_showPassword2)),
-                    const SizedBox(height: 25),
-                    _buildRegisterButton(),
-                    const SizedBox(height: 18),
-                    Row(children: const [
-                      Expanded(child: Divider(thickness: 1.2)),
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('O regístrate con')),
-                      Expanded(child: Divider(thickness: 1.2)),
-                    ]),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+
+              // Card blanco
+              Positioned(
+                top: headerHeight - 40,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(44), topRight: Radius.circular(44)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -4)),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildSocialBtn('assets/facebook.png', () {}),
-                        const SizedBox(width: 14),
-                        _buildSocialBtn('assets/google.png', () {
-                          setState(() => _loading = true);
-                          _controller.signInWithGoogle();
-                        }),
-                        const SizedBox(width: 14),
-                        _buildSocialBtn('assets/apple.png', () {}),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("¿Ya tienes cuenta?", style: TextStyle(fontSize: 15)),
-                        TextButton(
-                          onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                          child: const Text('Inicia sesión',
-                              style: TextStyle(color: Color(0xFF78A3EB), fontWeight: FontWeight.bold)),
+                        FractionallySizedBox(
+                          widthFactor: 0.7,
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            'assets/cata_register.png',
+                            height: imageHeight,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Registro',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+                        const SizedBox(height: 20),
+                        _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
+                        const SizedBox(height: 15),
+                        _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
+                        const SizedBox(height: 15),
+                        _buildInput(_phoneCtrl, "Número de teléfono", Icons.phone, false),
+                        const SizedBox(height: 15),
+                        _buildDropdownSexo(),
+                        const SizedBox(height: 15),
+                        _buildInput(_passCtrl, "Contraseña", Icons.lock, true,
+                            showPassword: _showPassword,
+                            togglePassword: () => setState(() => _showPassword = !_showPassword)),
+                        const SizedBox(height: 15),
+                        _buildInput(_pass2Ctrl, "Repite la contraseña", Icons.lock_outline, true,
+                            showPassword: _showPassword2,
+                            togglePassword: () => setState(() => _showPassword2 = !_showPassword2)),
+                        const SizedBox(height: 25),
+                        _buildRegisterButton(),
+                        const SizedBox(height: 18),
+                        Row(children: const [
+                          Expanded(child: Divider(thickness: 1.2)),
+                          Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Text('O regístrate con')),
+                          Expanded(child: Divider(thickness: 1.2)),
+                        ]),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildSocialBtn('assets/facebook.png', () {}),
+                            const SizedBox(width: 14),
+                            _buildSocialBtn('assets/google.png', () {
+                              setState(() => _loading = true);
+                              _controller.signInWithGoogle();
+                            }),
+                            const SizedBox(width: 14),
+                            _buildSocialBtn('assets/apple.png', () {}),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("¿Ya tienes cuenta?", style: TextStyle(fontSize: 15)),
+                            TextButton(
+                              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                              child: const Text('Inicia sesión',
+                                  style: TextStyle(
+                                      color: Color(0xFF78A3EB), fontWeight: FontWeight.bold)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                  ),
+                ),
+              ),
+
+              // Título
+              Positioned(
+                top: 70,
+                left: 32,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Crea tu cuenta',
+                        style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text('Crea una cuenta para continuar.',
+                        style: TextStyle(color: Colors.white70, fontSize: 16)),
                   ],
                 ),
               ),
-            ),
-          ),
 
-          // ----- Ilustración ENCIMA del Card -----
-          SizedBox(
-            height: headerHeight + 110,
-            child: Stack(
-              clipBehavior: Clip.none, //  permite sobresalir la imagen
-              children: [
-                Positioned(
-                  bottom: -10, //  sobresale la imagen hacia el card
-                  right: 16,
-                  child: SizedBox(
-                    width: w * 0.72,
-                    height: headerHeight * 1.05,
-                    child: Image.asset('assets/cata_register.png', fit: BoxFit.contain),
-                  ),
+              // Botón atrás
+              Positioned(
+                top: 14,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
                 ),
-                Positioned(
-                  top: headerHeight * 0.22,
-                  left: 32,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Crea tu cuenta', style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('Crea una cuenta para continuar.', style: TextStyle(color: Colors.white70, fontSize: 17)),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 14,
-                  left: 8,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // ===============================
-  //        Widgets Auxiliares
-  // ===============================
+  // ======= Tus widgets auxiliares (sin cambios) ==========
   Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
@@ -213,7 +213,8 @@ class _RegisterViewState extends State<RegisterView> {
         prefixIcon: Icon(icon, color: const Color(0xFF78A3EB)),
         suffixIcon: obscure
             ? IconButton(
-                icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off, color: const Color(0xFF78A3EB)),
+                icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off,
+                    color: const Color(0xFF78A3EB)),
                 onPressed: togglePassword,
               )
             : null,
@@ -258,10 +259,12 @@ class _RegisterViewState extends State<RegisterView> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _loading ? null : () async {
-          setState(() => _loading = true);
-          await _controller.registerUser(context);
-        },
+        onPressed: _loading
+            ? null
+            : () async {
+                setState(() => _loading = true);
+                await _controller.registerUser(context);
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF78A3EB),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -269,7 +272,8 @@ class _RegisterViewState extends State<RegisterView> {
         ),
         child: _loading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Registrarme', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
+            : const Text('Registrarme',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
       ),
     );
   }

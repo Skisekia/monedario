@@ -8,7 +8,7 @@ class AuthController extends ChangeNotifier {
     _loading = true;
     notifyListeners();
 
-    // Simula una llamada a tu backend
+    // Simula delay o llama a FirebaseAuth
     await Future.delayed(const Duration(seconds: 2));
 
     _loading = false;

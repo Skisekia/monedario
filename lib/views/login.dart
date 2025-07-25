@@ -175,15 +175,15 @@ class _LoginViewState extends State<LoginView> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Positioned(
-                  bottom: 20,
-                  right: 16,
-                  child: SizedBox(
-                    width: w * 0.65,
-                    height: headerHeight * 0.80,
-                    child: Image.asset('assets/polita_login.png', fit: BoxFit.contain),
-                  ),
-                ),
+                //Positioned(
+                  //bottom: 20,
+                  //right: 16,
+                  //child: SizedBox(
+                    //width: w * 0.65,
+                    //height: headerHeight * 0.80,
+                    //child: Image.asset('assets/polita_login.png', fit: BoxFit.contain),
+                  //),
+                //),
                 Positioned(
                   top: headerHeight * 0.22,
                   left: 32,

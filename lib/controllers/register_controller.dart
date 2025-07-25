@@ -2,11 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterController {
+  // ======== Controladores de campos de entrada ========
   final TextEditingController emailCtrl;
   final TextEditingController passCtrl;
   final TextEditingController pass2Ctrl;
   final TextEditingController nameCtrl;
+  final TextEditingController phoneCtrl;
+  final String gender;
 
+  // ======== Callbacks para notificar éxito o error ========
   final VoidCallback onSuccess;
   final Function(String) onError;
 
@@ -17,17 +21,22 @@ class RegisterController {
     required this.passCtrl,
     required this.pass2Ctrl,
     required this.nameCtrl,
+    required this.phoneCtrl,
+    required this.gender,
     required this.onSuccess,
     required this.onError,
   });
 
+  // ======== Lógica de registro principal ========
   Future<void> registerUser(BuildContext context) async {
     final email = emailCtrl.text.trim();
     final pass = passCtrl.text.trim();
     final pass2 = pass2Ctrl.text.trim();
     final name = nameCtrl.text.trim();
+    final phone = phoneCtrl.text.trim();
 
-    if (email.isEmpty || pass.isEmpty || name.isEmpty || pass2.isEmpty) {
+    // Validaciones
+    if (email.isEmpty || pass.isEmpty || name.isEmpty || pass2.isEmpty || phone.isEmpty) {
       onError("Completa todos los campos.");
       return;
     }
@@ -38,14 +47,17 @@ class RegisterController {
     }
 
     try {
+      // Registro en Firebase
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: pass,
       );
 
+      // Actualiza nombre (puedes guardar teléfono y género en Firestore después)
       await cred.user!.updateDisplayName(name);
       await cred.user!.reload();
 
+      // Registro exitoso
       onSuccess();
     } on FirebaseAuthException catch (e) {
       String msg = "Error al registrar.";
@@ -58,8 +70,21 @@ class RegisterController {
     }
   }
 
+  // ======== Google Sign-In (placeholder) ========
   Future<void> signInWithGoogle() async {
-    // Puedes implementar aquí tu flujo de Google Sign-In
-    // y luego llamar a onSuccess() si fue exitoso
+    // TODO: Implementar lógica real con Google Sign-In
+    onError("Google Sign-In aún no está implementado.");
+  }
+
+  // ======== Facebook Sign-In (placeholder) ========
+  Future<void> signInWithFacebook() async {
+    // TODO: Implementar lógica real con Facebook Sign-In
+    onError("Facebook Sign-In aún no está implementado.");
+  }
+
+  // ======== Apple Sign-In (placeholder) ========
+  Future<void> signInWithApple() async {
+    // TODO: Implementar lógica real con Apple Sign-In
+    onError("Apple Sign-In aún no está implementado.");
   }
 }
