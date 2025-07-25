@@ -24,7 +24,7 @@ class SettingsView extends StatelessWidget {
               final authController = Provider.of<AuthController>(context, listen: false);
               await authController.signOut();
               if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
               }
             },
             child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),

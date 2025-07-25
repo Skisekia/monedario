@@ -5,7 +5,6 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class RegisterController {
   final TextEditingController emailCtrl;
   final TextEditingController passCtrl;
@@ -31,7 +30,7 @@ class RegisterController {
     required this.onError,
   });
 
-  // ======= Registro por correo y contraseña =======
+  // ======= Registro manual por email =======
   Future<void> registerUser(BuildContext context) async {
     final email = emailCtrl.text.trim();
     final pass = passCtrl.text.trim();
@@ -54,22 +53,17 @@ class RegisterController {
         email: email,
         password: pass,
       );
-      // Actualizar el nombre del usuario
+
       await cred.user!.updateDisplayName(name);
       await cred.user!.reload();
 
-      // Guarda datos extra en Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(cred.user!.uid)
-          .set({
+      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
         'name': name,
         'email': email,
         'phone': phone,
         'gender': gender,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      
 
       onSuccess();
     } on FirebaseAuthException catch (e) {
@@ -83,11 +77,26 @@ class RegisterController {
     }
   }
 
+  // ======= Revisión y guardado en Firestore si es nuevo =======
+  Future<void> _checkAndSaveUserData(User user) async {
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+    if (!doc.exists) {
+      await docRef.set({
+        'name': user.displayName ?? '',
+        'email': user.email ?? '',
+        'phone': user.phoneNumber ?? '',
+        'gender': 'Otro',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
   // ======= Google Sign-In =======
   Future<void> signInWithGoogle() async {
     try {
       final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return; // Cancelado por el usuario
+      if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
 
@@ -96,7 +105,8 @@ class RegisterController {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
+      final result = await _auth.signInWithCredential(credential);
+      await _checkAndSaveUserData(result.user!);
       onSuccess();
     } catch (e) {
       onError("Error con Google Sign-In");
@@ -115,7 +125,8 @@ class RegisterController {
       final accessToken = result.accessToken;
       final credential = FacebookAuthProvider.credential(accessToken!.token);
 
-      await _auth.signInWithCredential(credential);
+      final authResult = await _auth.signInWithCredential(credential);
+      await _checkAndSaveUserData(authResult.user!);
       onSuccess();
     } catch (e) {
       onError("Error con Facebook Sign-In");
@@ -134,7 +145,8 @@ class RegisterController {
         accessToken: appleCredential.authorizationCode,
       );
 
-      await _auth.signInWithCredential(oauthCredential);
+      final authResult = await _auth.signInWithCredential(oauthCredential);
+      await _checkAndSaveUserData(authResult.user!);
       onSuccess();
     } catch (e) {
       onError("Error con Apple Sign-In");

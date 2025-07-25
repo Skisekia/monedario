@@ -37,6 +37,13 @@
             {
               "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "872567223101-alemgjqasrmu7r235fq9cophomv0026n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.monedario"
+              }
             }
           ]
         }
@@ -74,6 +81,13 @@
             {
               "client_id": "872567223101-o840o36jckeisnekf0hppvdc6ujul616.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "872567223101-alemgjqasrmu7r235fq9cophomv0026n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.monedario"
+              }
             }
           ]
         }
