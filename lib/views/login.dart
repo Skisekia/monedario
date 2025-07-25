@@ -52,7 +52,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
+    //final w = MediaQuery.of(context).size.width;
     final headerHeight = h * 0.35;
 
     return Scaffold(

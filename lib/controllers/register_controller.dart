@@ -1,16 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class RegisterController {
-  // ======== Controladores de campos de entrada ========
   final TextEditingController emailCtrl;
   final TextEditingController passCtrl;
   final TextEditingController pass2Ctrl;
   final TextEditingController nameCtrl;
   final TextEditingController phoneCtrl;
-  final String gender;
 
-  // ======== Callbacks para notificar éxito o error ========
+  String gender;
+
   final VoidCallback onSuccess;
   final Function(String) onError;
 
@@ -27,7 +31,7 @@ class RegisterController {
     required this.onError,
   });
 
-  // ======== Lógica de registro principal ========
+  // ======= Registro por correo y contraseña =======
   Future<void> registerUser(BuildContext context) async {
     final email = emailCtrl.text.trim();
     final pass = passCtrl.text.trim();
@@ -35,7 +39,6 @@ class RegisterController {
     final name = nameCtrl.text.trim();
     final phone = phoneCtrl.text.trim();
 
-    // Validaciones
     if (email.isEmpty || pass.isEmpty || name.isEmpty || pass2.isEmpty || phone.isEmpty) {
       onError("Completa todos los campos.");
       return;
@@ -47,17 +50,27 @@ class RegisterController {
     }
 
     try {
-      // Registro en Firebase
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: pass,
       );
-
-      // Actualiza nombre (puedes guardar teléfono y género en Firestore después)
+      // Actualizar el nombre del usuario
       await cred.user!.updateDisplayName(name);
       await cred.user!.reload();
 
-      // Registro exitoso
+      // Guarda datos extra en Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'gender': gender,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
+
       onSuccess();
     } on FirebaseAuthException catch (e) {
       String msg = "Error al registrar.";
@@ -70,21 +83,61 @@ class RegisterController {
     }
   }
 
-  // ======== Google Sign-In (placeholder) ========
+  // ======= Google Sign-In =======
   Future<void> signInWithGoogle() async {
-    // TODO: Implementar lógica real con Google Sign-In
-    onError("Google Sign-In aún no está implementado.");
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // Cancelado por el usuario
+
+      final googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+      onSuccess();
+    } catch (e) {
+      onError("Error con Google Sign-In");
+    }
   }
 
-  // ======== Facebook Sign-In (placeholder) ========
+  // ======= Facebook Sign-In =======
   Future<void> signInWithFacebook() async {
-    // TODO: Implementar lógica real con Facebook Sign-In
-    onError("Facebook Sign-In aún no está implementado.");
+    try {
+      final result = await FacebookAuth.instance.login();
+      if (result.status != LoginStatus.success) {
+        onError("Inicio con Facebook cancelado.");
+        return;
+      }
+
+      final accessToken = result.accessToken;
+      final credential = FacebookAuthProvider.credential(accessToken!.token);
+
+      await _auth.signInWithCredential(credential);
+      onSuccess();
+    } catch (e) {
+      onError("Error con Facebook Sign-In");
+    }
   }
 
-  // ======== Apple Sign-In (placeholder) ========
+  // ======= Apple Sign-In =======
   Future<void> signInWithApple() async {
-    // TODO: Implementar lógica real con Apple Sign-In
-    onError("Apple Sign-In aún no está implementado.");
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      );
+
+      final oauthCredential = OAuthProvider("apple.com").credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      await _auth.signInWithCredential(oauthCredential);
+      onSuccess();
+    } catch (e) {
+      onError("Error con Apple Sign-In");
+    }
   }
 }

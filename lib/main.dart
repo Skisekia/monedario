@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';  
-import 'firebase_options.dart';       // <-- Import necesario
+import 'firebase_options.dart';     
 import 'package:provider/provider.dart';
 
 // Rutas
@@ -9,8 +9,9 @@ import 'views/splash_screen.dart';
 import 'views/welcome.dart';
 import 'views/register.dart';
 import 'views/login.dart';
-import 'views/loading.dart';
+//import 'views/loading.dart';
 import 'views/dashboard.dart';
+import 'views/settings_view.dart';
 
 // Controlador
 import 'controllers/auth_controller.dart';
@@ -55,15 +56,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      initialRoute: '/splash',
+      initialRoute: '/welcome',
       routes: {
         '/splash':           (ctx) => const SplashScreen(),
         '/welcome':          (ctx) => const WelcomeView(),
         '/login':            (ctx) => const LoginView(),
         '/register':         (ctx) => const RegisterView(),
-        '/loading_login':    (ctx) => const Loading(nextRoute: '/welcome'),
-        '/loading_register': (ctx) => const Loading(nextRoute: '/register'),
-        '/dashboard': (context) => const Dashboard(),
+        '/dashboard': (ctx) => const Dashboard(),
+        '/settings_view': (ctx) => const SettingsView(),
       },
     );
   }

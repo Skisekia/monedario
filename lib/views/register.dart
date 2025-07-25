@@ -1,4 +1,3 @@
-// Agrega esto arriba de tu clase
 import 'package:flutter/material.dart';
 import '../controllers/register_controller.dart';
 
@@ -33,7 +32,7 @@ class _RegisterViewState extends State<RegisterView> {
       gender: _selectedGender,
       onSuccess: () {
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login'); // Ir al login despues registro exitoso
+          Navigator.pushReplacementNamed(context, '/login');
         }
       },
       onError: (msg) {
@@ -60,10 +59,9 @@ class _RegisterViewState extends State<RegisterView> {
         builder: (context, constraints) {
           final isTablet = constraints.maxWidth > 600;
           final headerHeight = isTablet ? 280.0 : 230.0;
-          final imageHeight = isTablet ? 200.0 : 160.0;
+          final imageWidth = isTablet ? 280.0 : constraints.maxWidth * 0.5;
 
           return Stack(
-            clipBehavior: Clip.none,
             children: [
               // Fondo degradado
               Container(
@@ -76,9 +74,33 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
               ),
 
-              // Card blanco
+              //  Card de fondo con imagen del gato
               Positioned(
-                top: headerHeight - 40,
+                top: 30,
+                left: 200,
+                right: 32,
+                child: Card(
+                  color: const Color(0xFF78A3EB),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 60, bottom: 100),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/cata_register.png',
+                        width: imageWidth * 1.5,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Card blanco con formulario
+              Positioned(
+                top: headerHeight + 90,
                 left: 0,
                 right: 0,
                 bottom: 0,
@@ -96,20 +118,9 @@ class _RegisterViewState extends State<RegisterView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        FractionallySizedBox(
-                          widthFactor: 0.7,
-                          alignment: Alignment.center,
-                          child: Image.asset(
-                            'assets/cata_register.png',
-                            height: imageHeight,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text('Registro',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
                         const SizedBox(height: 20),
+                        const Text('Registro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+                        const SizedBox(height: 24),
                         _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
                         const SizedBox(height: 15),
                         _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
@@ -139,14 +150,18 @@ class _RegisterViewState extends State<RegisterView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildSocialBtn('assets/facebook.png', () {}),
+                            _buildSocialBtn('assets/facebook.png', () {
+                              _controller.signInWithFacebook();
+                            }),
                             const SizedBox(width: 14),
                             _buildSocialBtn('assets/google.png', () {
                               setState(() => _loading = true);
                               _controller.signInWithGoogle();
                             }),
                             const SizedBox(width: 14),
-                            _buildSocialBtn('assets/apple.png', () {}),
+                            _buildSocialBtn('assets/apple.png', () {
+                              _controller.signInWithApple();
+                            }),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -168,22 +183,6 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
               ),
 
-              // Título
-              Positioned(
-                top: 70,
-                left: 32,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Crea tu cuenta',
-                        style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('Crea una cuenta para continuar.',
-                        style: TextStyle(color: Colors.white70, fontSize: 16)),
-                  ],
-                ),
-              ),
-
               // Botón atrás
               Positioned(
                 top: 14,
@@ -193,6 +192,22 @@ class _RegisterViewState extends State<RegisterView> {
                   onPressed: () => Navigator.pushReplacementNamed(context, '/welcome'),
                 ),
               ),
+
+              //  Títulos
+              const Positioned(
+                top: 50,
+                left: 32,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Crea tu cuenta',
+                        style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text('Crea una cuenta para continuar.',
+                        style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  ],
+                ),
+              ),
             ],
           );
         },
@@ -200,7 +215,8 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
-  // ======= Tus widgets auxiliares (sin cambios) ==========
+  // ========== Widgets auxiliares ==========
+
   Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
@@ -249,7 +265,9 @@ class _RegisterViewState extends State<RegisterView> {
         DropdownMenuItem(value: 'Otro', child: Text('Otro')),
       ],
       onChanged: (value) {
-        if (value != null) setState(() => _selectedGender = value);
+        if (value != null) {
+          setState(() => _selectedGender = value);
+        }
       },
     );
   }
@@ -263,6 +281,7 @@ class _RegisterViewState extends State<RegisterView> {
             ? null
             : () async {
                 setState(() => _loading = true);
+                _controller.gender = _selectedGender;
                 await _controller.registerUser(context);
               },
         style: ElevatedButton.styleFrom(

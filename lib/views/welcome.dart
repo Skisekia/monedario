@@ -148,7 +148,7 @@ class WelcomeView extends StatelessWidget {
   }
 
   List<Widget> _buildBackgroundPattern({required double centerX, required double centerY}) {
-    const iconColor = Colors.white24;
+    //const iconColor = Colors.white24;
     const baseSize = 22.0;
 
     final icons = [
@@ -191,7 +191,7 @@ class WelcomeView extends StatelessWidget {
       final icon = icons[i % icons.length];
       final random = Random(i);
       final size = baseSize + random.nextInt(8); // Tamaños variados
-      final opacity = 0.15 + random.nextDouble() * 0.25;
+      //final opacity = 0.15 + random.nextDouble() * 0.25;
 
       iconWidgets.add(Positioned(
         left: centerX + pos.dx,
@@ -199,7 +199,7 @@ class WelcomeView extends StatelessWidget {
         child: Icon(
           icon,
           size: size,
-          color: iconColor.withOpacity(opacity),
+          color: Color.fromRGBO(253, 251, 253, 0.6), 
         ),
       ));
     }
