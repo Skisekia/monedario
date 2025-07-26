@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/login_controller.dart';
 
-// ===============================
-//           LoginView
-// ===============================
+// Vista de inicio de sesión
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -12,9 +10,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  // ===============================
-  //   Controllers & Variables
-  // ===============================
+// Controladores de texto
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _showPassword = false;
@@ -46,9 +42,7 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  // ===============================
-  //           UI
-  // ===============================
+ //display 
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -141,16 +135,27 @@ class _LoginViewState extends State<LoginView> {
                     ]),
                     const SizedBox(height: 12),
 
+                    // ----- Botones sociales -----
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildSocialBtn('assets/facebook.png', () {}),
+                        _buildSocialBtn('assets/facebook.png', () {
+                          setState(() => _loading = true);
+                          _controller.signInWithFacebook();
+                        }),
                         const SizedBox(width: 14),
-                        _buildSocialBtn('assets/google.png', () {}),
+                        _buildSocialBtn('assets/google.png', () {
+                          setState(() => _loading = true);
+                          _controller.signInWithGoogle();
+                        }),
                         const SizedBox(width: 14),
-                        _buildSocialBtn('assets/apple.png', () {}),
+                        _buildSocialBtn('assets/apple.png', () {
+                          setState(() => _loading = true);
+                          _controller.signInWithApple();
+                        }),
                       ],
                     ),
+
 
                     const SizedBox(height: 20),
                     Row(
