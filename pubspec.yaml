@@ -42,3 +42,7 @@ flutter:
     - assets/cata_register.png
     - assets/polita_login.png
     - assets/welcome_cats.png
+    - assets/cat_login.png
+    - assets/icon_man.json
+    - assets/icon_woman.json
+    - assets/icon_default.json
