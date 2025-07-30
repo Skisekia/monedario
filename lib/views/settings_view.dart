@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
-import '../../utils/icon_mapper.dart';
 import '../../models/user_model.dart';
 
 class SettingsView extends StatelessWidget {
@@ -19,12 +17,6 @@ class SettingsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Mi Perfil'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
       body: SafeArea(
         child: FutureBuilder<UserModel?>(
           future: auth.getCurrentUserModel(),
@@ -36,61 +28,10 @@ class SettingsView extends StatelessWidget {
               return const Center(child: Text("No se pudo cargar el perfil"));
             }
 
-            final user = snapshot.data!;
-
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 children: [
-                  // ===== PERFIL HEADER =====
-                  Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: Lottie.asset(
-                          getLottieAssetByGender(user.gender),
-                          height: 60,
-                          width: 60,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Text(
-                              user.email,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: controller.goToEditProfile,
-                        child: const Text('Editar perfil'),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
                   // ===== OPCIONES =====
                   _buildTile(
                     icon: Icons.download,
@@ -110,7 +51,6 @@ class SettingsView extends StatelessWidget {
                     onTap: controller.goToHistory,
                     color: primaryColor,
                   ),
-
                   const SizedBox(height: 10),
 
                   // ===== CERRAR SESIÓN =====

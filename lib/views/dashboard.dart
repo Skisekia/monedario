@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
+// Controllers
 import '../../controllers/auth_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
+
+// Views
 import 'home_view.dart';
 import 'statistics_view.dart';
+import 'transaction_form_view.dart';
+import 'settings_view.dart';
+import '../../utils/bottom_nav_bar.dart';
+
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -19,10 +26,11 @@ class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
 
   final List<Widget> _views = const [
-    HomeView(),
-    StatisticsView(),
-    Center(child: Text('Ajustes')), // Placeholder para configuración
-  ];
+  HomeView(),
+  StatisticsView(),
+  TransactionFormView(),
+  SettingsView(),
+];
 
   @override
   Widget build(BuildContext context) {
@@ -86,16 +94,11 @@ class _DashboardState extends State<Dashboard> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Estadísticas'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ajustes'),
-        ],
-      ),
+      bottomNavigationBar: AppBottomNavBar(
+  selectedIndex: _selectedIndex,
+  onTap: (index) => setState(() => _selectedIndex = index),
+),
+
     );
   }
 }
