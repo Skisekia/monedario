@@ -52,4 +52,12 @@ class SettingsController {
       const SnackBar(content: Text('Cambio de moneda... (función futura)')),
     );
   }
+
+  void goToHelp() {
+  // Aquí va la vista de ayuda
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Sección de ayuda y soporte próximamente')),
+  );
+}
+
 }

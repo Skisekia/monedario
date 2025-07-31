@@ -43,6 +43,6 @@ flutter:
     - assets/polita_login.png
     - assets/welcome_cats.png
     - assets/cat_login.png
-    - assets/icon_man.json
-    - assets/icon_woman.json
-    - assets/icon_default.json
+    - assets/icon_polita.png
+    - assets/icon_chikilin.png
+    - assets/icon_cata.png
