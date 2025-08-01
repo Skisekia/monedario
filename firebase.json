@@ -1,1 +1,16 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"monedarioapp","appId":"1:872567223101:android:ee6b5fc6c2b96883968b54","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"monedarioapp","configurations":{"android":"1:872567223101:android:ee6b5fc6c2b96883968b54","ios":"1:872567223101:ios:a1e4d4e0476db6f8968b54","macos":"1:872567223101:ios:a1e4d4e0476db6f8968b54","web":"1:872567223101:web:43a2229777b563e3968b54","windows":"1:872567223101:web:a98bb606f9dc227d968b54"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

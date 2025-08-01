@@ -10,12 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  provider: ^6.0.5
-  cupertino_icons: ^1.0.8
-  lottie: ^2.7.0
-  font_awesome_flutter: ^10.7.0
-  image_picker: ^0.8.7+3
+  # Dependencias principales
+  provider: ^6.0.5      # Para gestión de estado
+  cupertino_icons: ^1.0.8      # Para iconos de iOS
+  lottie: ^2.7.0               # Para animaciones Lottie json
+  font_awesome_flutter: ^10.7.0    # Para iconos de redes sociales
+  image_picker: ^0.8.7+3         # Para seleccionar imágenes
+  url_launcher: ^6.3.0         # Para abrir URLs
 
   # Dependencias de Firebase 
   firebase_auth: ^5.6.2         # Para login/registro

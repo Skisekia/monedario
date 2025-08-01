@@ -2,7 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../views/edit_profile_view.dart';
 import '../views/history_view.dart';
@@ -12,12 +16,11 @@ class SettingsController {
   final BuildContext context;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   SettingsController(this.context);
 
-  // ==============================
-  // Confirmar logout
-  // ==============================
+  // Muestra un cuadro de confirmación antes de cerrar sesión
   void confirmLogout(Function onConfirm) {
     showDialog(
       context: context,
@@ -41,41 +44,107 @@ class SettingsController {
     );
   }
 
-  // ==============================
-  // Navegar a editar perfil
-  // ==============================
+  // Abre la vista para editar el perfil
   void goToEditProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileView()));
   }
 
-  // ==============================
-  // Snackbar simulando descarga
-  // ==============================
-  void downloadManual() {
+  // Guarda y aplica el tipo de moneda seleccionado
+  void changeCurrency(String currencyCode) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Descargando manual...')),
+      SnackBar(content: Text('Moneda cambiada a: $currencyCode')),
     );
+    debugPrint("Nueva moneda seleccionada: $currencyCode");
   }
 
-  void changeCurrency() {
+  // Guarda y aplica el idioma seleccionado
+  void changeLanguage(String language) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cambiando tipo de moneda...')),
+      SnackBar(content: Text('Idioma cambiado a: $language')),
     );
+    debugPrint("Nuevo idioma seleccionado: $language");
   }
 
+  // Abre la vista con el historial de archivos del usuario
   void goToHistory() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryView()));
   }
 
+  // Abre el enlace de redes sociales en el navegador o aplicación correspondiente
+  Future<void> goToSocialLinks() async {
+    const url = "https://tusredes.com";
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir el enlace')),
+      );
+    }
+  }
+
+  // Muestra un mensaje o redirige a la sección de soporte
   void goToHelp() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Ayuda y soporte próximamente')),
     );
   }
 
-  // ==============================
-  // Actualizar datos del perfil
-  // ==============================
+  // Conecta o desconecta la cuenta de Facebook
+  Future<void> toggleFacebook(bool connect) async {
+    if (connect) {
+      try {
+        final LoginResult result = await FacebookAuth.instance.login();
+        if (!context.mounted) return;
+        if (result.status == LoginStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cuenta de Facebook vinculada')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo vincular Facebook')),
+          );
+        }
+      } catch (e) {
+        debugPrint("Error vinculando Facebook: $e");
+      }
+    } else {
+      await FacebookAuth.instance.logOut();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cuenta de Facebook desconectada')),
+      );
+    }
+  }
+
+  // Conecta o desconecta la cuenta de Google
+  Future<void> toggleGoogle(bool connect) async {
+    if (connect) {
+      try {
+        final GoogleSignInAccount? account = await _googleSignIn.signIn();
+        if (!context.mounted) return;
+        if (account != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cuenta de Google vinculada')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo vincular Google')),
+          );
+        }
+      } catch (e) {
+        debugPrint("Error vinculando Google: $e");
+      }
+    } else {
+      await _googleSignIn.signOut();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cuenta de Google desconectada')),
+      );
+    }
+  }
+
+  // Actualiza la información del perfil del usuario
   Future<void> updateProfile({
     required String name,
     String? email,
@@ -87,61 +156,38 @@ class SettingsController {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    // Actualiza nombre
+    // Actualiza el nombre
     if (name != user.displayName) {
       await user.updateDisplayName(name);
     }
 
-    // Actualiza email
+    // Actualiza el email usando el método recomendado
     if (email != null && email.isNotEmpty && email != user.email) {
-      await user.updateEmail(email);
+      await user.verifyBeforeUpdateEmail(email);
     }
 
-    // Actualiza contraseña
+    // Actualiza la contraseña si se proporciona
     if (password != null && password.isNotEmpty) {
       await user.updatePassword(password);
     }
 
-    // Actualiza foto
+    // Actualiza la foto de perfil
     if (imageFile != null) {
-  try {
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child('profiles/${user.uid}/profile.jpg');
-
-    // Subir archivo
-    await storageRef.putFile(imageFile);
-
-    // Obtener URL pública
-    final imageUrl = await storageRef.getDownloadURL();
-
-    // Actualizar en Firebase Auth
-    await user.updatePhotoURL(imageUrl);
-
-    debugPrint("Imagen subida con éxito: $imageUrl");
-  } catch (e) {
-    debugPrint("Error subiendo imagen: $e");
-  }
-}
-
-
-    // Opcional: si usas Firestore, actualiza género y país
-    if (gender != null || country != null) {
-      final firestore = FirebaseStorage.instance;
-      final uid = user.uid;
-      final doc = firestore.ref().child('users').child(uid);
-      final updateData = <String, dynamic>{};
-
-      if (gender != null) updateData['gender'] = gender;
-      if (country != null) updateData['country'] = country;
-
-      if (updateData.isNotEmpty) {
-        // Asegúrate de tener configurado Firestore y el doc de usuario
-        // await FirebaseFirestore.instance.collection('users').doc(uid).update(updateData);
+      try {
+        final storageRef = _storage.ref().child('profiles/${user.uid}/profile.jpg');
+        await storageRef.putFile(imageFile);
+        final imageUrl = await storageRef.getDownloadURL();
+        await user.updatePhotoURL(imageUrl);
+        debugPrint("Imagen subida con éxito: $imageUrl");
+      } catch (e) {
+        debugPrint("Error subiendo imagen: $e");
       }
     }
 
-    // Actualizar en memoria el modelo global
+    // Si se guarda género o país en Firestore, se podría actualizar aquí
+
+    // Refresca la información del usuario en la aplicación
+    if (!context.mounted) return;
     final authController = Provider.of<AuthController>(context, listen: false);
     await authController.refreshUser();
   }

@@ -1,11 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
+import 'modals_view.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -15,13 +17,66 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
+  File? _profileImage;
+  final picker = ImagePicker();
+  bool fbConnected = false;
+  bool googleConnected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProviderStatus();
+  }
+
+  void _loadProviderStatus() async {
+    final auth = Provider.of<AuthController>(context, listen: false);
+    final user = await auth.getCurrentUserModel();
+    if (user != null) {
+      setState(() {
+        fbConnected = user.provider == "facebook.com";
+        googleConnected = user.provider == "google.com";
+      });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Tomar foto'),
+              onTap: () async {
+                final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                if (pickedFile != null) {
+                  setState(() => _profileImage = File(pickedFile.path));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Seleccionar de galería'),
+              onTap: () async {
+                final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                if (pickedFile != null) {
+                  setState(() => _profileImage = File(pickedFile.path));
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const gradientColors = [
-      Color(0xFF250E2C),
-      Color(0xFF837AB6),
-      Color(0xFFF6A5C0),
-    ];
+    const sectionTitleStyle =
+        TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold);
 
     final auth = Provider.of<AuthController>(context, listen: false);
     final controller = SettingsController(context);
@@ -38,163 +93,153 @@ class _SettingsViewState extends State<SettingsView> {
             final user = snapshot.data!;
 
             return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ===== ENCABEZADO =====
+                  // ===== Avatar con animación Lottie o foto subida =====
                   Stack(
-                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
                     children: [
-                      // Fondo degradado
                       Container(
-                        height: 220,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: gradientColors,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(30),
-                            bottomRight: Radius.circular(30),
-                          ),
+                        width: 110,
+                        height: 110,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: ClipOval(
+                          child: _profileImage != null
+                              ? Image.file(_profileImage!, fit: BoxFit.cover)
+                              : Lottie.asset(
+                                  getProfileIconByGender(user.gender),
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
-
-                      // Botón Logout (puedes quitar el back porque navegas desde el nav bar)
                       Positioned(
-                        top: 12,
-                        right: 8,
-                        child: IconButton(
-                          icon: const Icon(Icons.logout, color: Colors.white),
-                          onPressed: () => controller.confirmLogout(() async {
-                            await auth.signOut();
-                            if (!context.mounted) return;
-                            Navigator.pushNamedAndRemoveUntil(
-                              context, '/welcome', (_) => false);
-                          }),
-                        ),
-                      ),
-
-                      // Avatar + Botón editar
-                      Positioned(
-                        top: 60,
-                        left: 0,
-                        right: 0,
-                        child: Column(
-                          children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Colors.white, width: 4),
-                                  ),
-                                  child: ClipOval(
-                                    child: Lottie.asset(
-                                      getProfileIconByGender(user.gender),
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: controller.goToEditProfile,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      padding: const EdgeInsets.all(6),
-                                      child: const Icon(Icons.edit,
-                                          size: 18,
-                                          color: Color(0xFF837AB6)),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        bottom: 0,
+                        right: MediaQuery.of(context).size.width / 2 - 70,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              user.email,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
+                            child: const Icon(Icons.camera_alt,
+                                size: 18, color: Colors.purple),
+                          ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  Text(user.name,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(user.email, style: const TextStyle(color: Colors.grey)),
 
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 20),
 
-                  // ===== OPCIONES EN CUADRÍCULA =====
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        _buildGridOption(Icons.download, 'Descargar manual',
-                            controller.downloadManual),
-                        _buildGridOption(Icons.attach_money,
-                            'Cambiar tipo de moneda', controller.changeCurrency),
-                        _buildGridOption(Icons.history, 'Historial de archivos',
-                            controller.goToHistory),
-                        _buildGridOption(Icons.help_outline, 'Ayuda y soporte',
-                            controller.goToHelp),
-                      ],
+                  // ===== Sección Cuenta =====
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Cuenta", style: sectionTitleStyle)),
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text("Editar perfil"),
+                    onTap: controller.goToEditProfile,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // ===== Configuración =====
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Configuración", style: sectionTitleStyle)),
+                  ListTile(
+                    leading: const Icon(Icons.attach_money),
+                    title: const Text("Cambiar tipo de moneda"),
+                    onTap: () => showCurrencyModal(context, (selected) {
+                      controller.changeCurrency(selected);
+                    }),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text("Cambiar idioma"),
+                    onTap: () => showLanguageModal(context, (selected) {
+                      controller.changeLanguage(selected);
+                    }),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text("Historial de archivos"),
+                    onTap: controller.goToHistory,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // ===== Redes sociales =====
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Conexiones de cuenta",
+                          style: sectionTitleStyle)),
+                  SwitchListTile(
+                    value: fbConnected,
+                    onChanged: (val) {
+                      setState(() => fbConnected = val);
+                      controller.toggleFacebook(val);
+                    },
+                    title: const Text("Facebook"),
+                    secondary:
+                        const Icon(Icons.facebook, color: Colors.blue),
+                  ),
+                  SwitchListTile(
+                    value: googleConnected,
+                    onChanged: (val) {
+                      setState(() => googleConnected = val);
+                      controller.toggleGoogle(val);
+                    },
+                    title: const Text("Google"),
+                    secondary: const Icon(Icons.g_mobiledata, color: Colors.red),
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.share),
+                    title: const Text("Síguenos en nuestras redes"),
+                    onTap: controller.goToSocialLinks,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // ===== Ayuda y soporte =====
+                  ListTile(
+                    leading: const Icon(Icons.help_outline),
+                    title: const Text("Ayuda y soporte"),
+                    onTap: controller.goToHelp,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ===== Botón cerrar sesión =====
+                  TextButton(
+                    onPressed: () => controller.confirmLogout(() async {
+                      await auth.signOut();
+                      if (!context.mounted) return;
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/welcome', (_) => false);
+                    }),
+                    child: const Text(
+                      "Cerrar sesión",
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridOption(IconData icon, String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100, // Fondo neutro
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 28, color: const Color(0xFF837AB6)),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ],
         ),
       ),
     );
