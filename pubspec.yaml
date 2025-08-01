@@ -45,4 +45,5 @@ flutter:
     - assets/avatar_girl.json
     - assets/girl_support.json
     - assets/send.json
+    - assets/avatar_default.json
     
