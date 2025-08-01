@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../controllers/auth_controller.dart';
-import '../../models/user_model.dart';
+import '../../utils/app_header.dart';
 import '../../utils/button_nav_bar.dart';
 
-import 'home_view.dart';
 import 'statistics_view.dart';
 import 'transaction_form_view.dart';
 import 'settings_view.dart';
@@ -20,9 +16,9 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
 
-  // Las cuatro vistas que corresponderán a cada pestaña
+  // Tus páginas reales
   static const List<Widget> _views = [
-    HomeView(),
+    SizedBox(), // Dashboard/Home (contenido principal lo agregas aquí)
     StatisticsView(),
     TransactionFormView(),
     SettingsView(),
@@ -31,9 +27,21 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // No hay encabezado ni avatar aquí; cada vista se encarga de mostrar lo suyo
       body: SafeArea(
-        child: _views[_selectedIndex],
+        child: Column(
+          children: [
+            // 🔹 Header dinámico
+            AppHeader(currentIndex: _selectedIndex),
+
+            // 🔹 Vista seleccionada
+            Expanded(
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: _views,
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: AppBottomNavBar(
         selectedIndex: _selectedIndex,

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
 
-class SettingsView extends StatelessWidget {
+class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
+  @override
+  State<SettingsView> createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView> {
   @override
   Widget build(BuildContext context) {
     const gradientColors = [
@@ -20,7 +25,6 @@ class SettingsView extends StatelessWidget {
 
     final auth = Provider.of<AuthController>(context, listen: false);
     final controller = SettingsController(context);
-    final loading = context.watch<AuthController>().loading;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -28,145 +32,139 @@ class SettingsView extends StatelessWidget {
         child: FutureBuilder<UserModel?>(
           future: auth.getCurrentUserModel(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (!snapshot.hasData) {
-              return const Center(child: Text("No se pudo cargar el perfil"));
-            }
-
             final user = snapshot.data!;
 
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  // ==== HEADER GRADIENTE CURVO ====
+                  // ===== ENCABEZADO =====
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      ClipPath(
-                        clipper: _CurveClipper(),
-                        child: Container(
-                          height: 260,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: gradientColors,
-                            ),
+                      // Fondo degradado
+                      Container(
+                        height: 220,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: gradientColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 40,
-                        left: 16,
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back,
-                              color: Colors.white, size: 26),
-                          onPressed: () =>
-                              Navigator.pushReplacementNamed(context, '/dashboard'),
-                        ),
-                      ),
-                      Positioned(
-                        top: 60,
-                        left: 0,
-                        right: 0,
-                        child: Column(
-                          children: [
-                            ClipOval(
-                              child: Container(
-                                width: 110,
-                                height: 110,
-                                color: Colors.white,
-                                child: Image.asset(
-                                  getProfileIconByGender(user.gender),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              user.email,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildGradientButton(
-                              text: "Editar perfil",
-                              onTap: controller.goToEditProfile,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
 
-                  // ==== OPCIONES ====
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        _buildOptionTile(
-                          icon: Icons.download,
-                          text: 'Descargar manual',
-                          onTap: controller.downloadManual,
-                        ),
-                        _buildOptionTile(
-                          icon: Icons.attach_money,
-                          text: 'Cambiar tipo de moneda',
-                          onTap: controller.changeCurrency,
-                        ),
-                        _buildOptionTile(
-                          icon: Icons.history,
-                          text: 'Historial de archivos',
-                          onTap: controller.goToHistory,
-                        ),
-                        _buildOptionTile(
-                          icon: Icons.help_outline,
-                          text: 'Ayuda y soporte',
-                          onTap: controller.goToHelp,
-                        ),
-                        const SizedBox(height: 30),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.logout),
-                          label: loading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white))
-                              : const Text('Cerrar sesión'),
+                      // Botón Logout (puedes quitar el back porque navegas desde el nav bar)
+                      Positioned(
+                        top: 12,
+                        right: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.white),
                           onPressed: () => controller.confirmLogout(() async {
                             await auth.signOut();
                             if (!context.mounted) return;
                             Navigator.pushNamedAndRemoveUntil(
                               context, '/welcome', (_) => false);
                           }),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                          ),
                         ),
+                      ),
+
+                      // Avatar + Botón editar
+                      Positioned(
+                        top: 60,
+                        left: 0,
+                        right: 0,
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white, width: 4),
+                                  ),
+                                  child: ClipOval(
+                                    child: Lottie.asset(
+                                      getProfileIconByGender(user.gender),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: controller.goToEditProfile,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
+                                      ),
+                                      padding: const EdgeInsets.all(6),
+                                      child: const Icon(Icons.edit,
+                                          size: 18,
+                                          color: Color(0xFF837AB6)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              user.name,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              user.email,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 80),
+
+                  // ===== OPCIONES EN CUADRÍCULA =====
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildGridOption(Icons.download, 'Descargar manual',
+                            controller.downloadManual),
+                        _buildGridOption(Icons.attach_money,
+                            'Cambiar tipo de moneda', controller.changeCurrency),
+                        _buildGridOption(Icons.history, 'Historial de archivos',
+                            controller.goToHistory),
+                        _buildGridOption(Icons.help_outline, 'Ayuda y soporte',
+                            controller.goToHelp),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
                 ],
               ),
             );
@@ -176,79 +174,29 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionTile({
-    required IconData icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: const Color(0xFF837AB6)),
-        title: Text(text),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16)),
-      ),
-    );
-  }
-
-  Widget _buildGradientButton({
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      height: 38,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ).copyWith(
-          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+  Widget _buildGridOption(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100, // Fondo neutro
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Ink(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF250E2C),
-                Color(0xFF837AB6),
-                Color(0xFFF6A5C0),
-              ],
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 28, color: const Color(0xFF837AB6)),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13),
             ),
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style:
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
+          ],
         ),
       ),
     );
   }
-}
-
-class _CurveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 60);
-    path.quadraticBezierTo(
-      size.width / 2, size.height, size.width, size.height - 60);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
