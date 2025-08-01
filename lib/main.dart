@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';  
-import 'firebase_options.dart';     
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 
-// Rutas
+// Rutas y vistas
 import 'views/splash_screen.dart';
 import 'views/welcome.dart';
-import 'views/register.dart';
-import 'views/login.dart';
-//import 'views/loading.dart';
+
+// Vistas con alias para evitar conflictos
+import 'package:monedario/views/login.dart' as login;
+import 'package:monedario/views/register.dart' as register;
+import 'package:monedario/views/forgot_password_view.dart' as forgot_password;
+
 import 'views/dashboard.dart';
 import 'views/settings_view.dart';
 
@@ -19,15 +22,13 @@ import 'controllers/auth_controller.dart';
 // Tema
 import 'ui/theme.dart';
 
-
 void main() async {
-  // Asegura que Flutter esté inicializado antes de tocar SystemChrome
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Bloquear solo modo retrato (arriba y abajo)
+  // Bloquear orientación en retrato
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -50,18 +51,18 @@ class MyApp extends StatelessWidget {
       title: 'Monedario',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Usamos el color lila definido en theme.dart
         primaryColor: lilacBackground,
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
-
       initialRoute: '/welcome',
       routes: {
-        '/splash':           (ctx) => const SplashScreen(),
-        '/welcome':          (ctx) => const WelcomeView(),
-        '/login':            (ctx) => const LoginView(),
-        '/register':         (ctx) => const RegisterView(),
+        '/splash': (ctx) => const SplashScreen(),
+        '/welcome': (ctx) => const WelcomeView(),
+        // Rutas con alias para evitar conflictos
+        '/login': (ctx) => const login.LoginView(),
+        '/register': (ctx) => const register.RegisterView(),
+        '/forgot_password': (ctx) => const forgot_password.ForgotPasswordView(),
         '/dashboard': (ctx) => const Dashboard(),
         '/settings_view': (ctx) => const SettingsView(),
       },

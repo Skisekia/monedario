@@ -30,9 +30,7 @@ class _RegisterViewState extends State<RegisterView> {
         if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
       },
       onError: (msg) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg)),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
         setState(() => _loading = false);
       },
     );
@@ -52,7 +50,7 @@ class _RegisterViewState extends State<RegisterView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
-    // 📌 Margen dinámico del card
+    // 📌 Margen adaptativo para que la animación siempre esté pegada al card
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
     return Scaffold(
@@ -60,6 +58,7 @@ class _RegisterViewState extends State<RegisterView> {
       body: SafeArea(
         child: Stack(
           children: [
+            // Fondo gradiente
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -75,7 +74,6 @@ class _RegisterViewState extends State<RegisterView> {
               child: Column(
                 children: [
                   const SizedBox(height: 50),
-
                   // 📌 Mensaje de bienvenida
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 42),
@@ -106,7 +104,7 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   const SizedBox(height: 10),
 
-                  // 📌 Card con animación sobrepuesta
+                  // 📌 Card + Animación
                   Expanded(
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -114,10 +112,7 @@ class _RegisterViewState extends State<RegisterView> {
                         // Card blanco
                         Container(
                           margin: EdgeInsets.only(top: cardTopMargin),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 2,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 2),
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.only(
@@ -135,7 +130,7 @@ class _RegisterViewState extends State<RegisterView> {
                           child: ListView(
                             physics: const ClampingScrollPhysics(),
                             children: [
-                              const SizedBox(height: 40), // espacio para animación
+                              const SizedBox(height: 40),
                               const Text(
                                 'Registro',
                                 style: TextStyle(
@@ -176,29 +171,22 @@ class _RegisterViewState extends State<RegisterView> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  _buildSocialBtn(
-                                    'assets/facebook.png',
-                                    () => _controller.signInWithFacebook(),
-                                  ),
+                                  _buildSocialBtn('assets/facebook.png', () {
+                                    _controller.signInWithFacebook();
+                                  }),
                                   const SizedBox(width: 14),
-                                  _buildSocialBtn(
-                                    'assets/google.png',
-                                    () {
-                                      setState(() => _loading = true);
-                                      _controller.signInWithGoogle();
-                                    },
-                                  ),
+                                  _buildSocialBtn('assets/google.png', () {
+                                    _controller.signInWithGoogle();
+                                  }),
                                 ],
                               ),
                               const SizedBox(height: 20),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text("¿Ya tienes cuenta?",
-                                      style: TextStyle(fontSize: 15)),
+                                  const Text("¿Ya tienes cuenta?", style: TextStyle(fontSize: 15)),
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.pushReplacementNamed(context, '/login'),
+                                    onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                                     child: const Text(
                                       'Inicia sesión',
                                       style: TextStyle(
@@ -213,10 +201,10 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                         ),
 
-                        // 📌 Animación Lottie sobrepuesta al card
+                        // 📌 Animación sobrepuesta al card
                         Positioned(
-                          top: isTablet ? -40 : -40, // ajusta en móvil/tablet
-                          left: 130,
+                          top: isTablet ? -40 : -40,
+                          left: 0,
                           right: 0,
                           child: Center(
                             child: SizedBox(
@@ -250,6 +238,9 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+  // ===============================
+  //     Widgets Auxiliares
+  // ===============================
   Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
