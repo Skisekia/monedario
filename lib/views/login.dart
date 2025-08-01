@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import '../controllers/login_controller.dart';
+import '../controllers/auth_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -45,7 +47,6 @@ class _LoginViewState extends State<LoginView> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
-
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
     return Scaffold(
@@ -98,7 +99,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Card + animación
+                  // Card + Animación
                   Expanded(
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -106,7 +107,9 @@ class _LoginViewState extends State<LoginView> {
                         Container(
                           margin: EdgeInsets.only(top: cardTopMargin),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 2),
+                            horizontal: 32,
+                            vertical: 2,
+                          ),
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.only(
@@ -133,8 +136,8 @@ class _LoginViewState extends State<LoginView> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              _buildInput(_emailCtrl, "Correo electrónico",
-                                  Icons.email, false),
+                              _buildInput(
+                                  _emailCtrl, "Correo electrónico", Icons.email, false),
                               const SizedBox(height: 16),
                               _buildInput(
                                 _passCtrl,
@@ -142,26 +145,24 @@ class _LoginViewState extends State<LoginView> {
                                 Icons.lock,
                                 true,
                                 showPassword: _showPassword,
-                                togglePassword: () => setState(
-                                    () => _showPassword = !_showPassword),
+                                togglePassword: () =>
+                                    setState(() => _showPassword = !_showPassword),
                               ),
 
-                              // 📌 Botón para recuperar contraseña
+                              // Botón de "Olvidaste tu contraseña?"
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: () =>
-                                      _showForgotPasswordModal(context),
+                                  onPressed: () => _showForgotPasswordModal(context),
                                   child: const Text(
                                     '¿Olvidaste tu contraseña?',
-                                    style:
-                                        TextStyle(color: Color(0xFF837AB6)),
+                                    style: TextStyle(color: Color(0xFF837AB6)),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 4),
 
-                              // Botón entrar
+                              // Botón Entrar
                               SizedBox(
                                 width: double.infinity,
                                 height: 50,
@@ -179,8 +180,7 @@ class _LoginViewState extends State<LoginView> {
                                     ),
                                   ).copyWith(
                                     backgroundColor:
-                                        MaterialStateProperty.all(
-                                            Colors.transparent),
+                                        WidgetStateProperty.all(Colors.transparent),
                                   ),
                                   child: Ink(
                                     decoration: const BoxDecoration(
@@ -211,12 +211,12 @@ class _LoginViewState extends State<LoginView> {
                                   ),
                                 ),
                               ),
+
                               const SizedBox(height: 18),
                               Row(children: const [
                                 Expanded(child: Divider(thickness: 1.2)),
                                 Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 8),
                                   child: Text('O ingresa con'),
                                 ),
                                 Expanded(child: Divider(thickness: 1.2)),
@@ -297,9 +297,10 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  // 📌 Modal para recuperar contraseña
+  // Modal para recuperar contraseña
   void _showForgotPasswordModal(BuildContext context) {
-    final emailResetCtrl = TextEditingController();
+    final TextEditingController emailResetCtrl = TextEditingController();
+    final authController = Provider.of<AuthController>(context, listen: false);
 
     showModalBottomSheet(
       context: context,
@@ -340,20 +341,40 @@ class _LoginViewState extends State<LoginView> {
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () {
-                  // Lógica para enviar correo de recuperación
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Correo de recuperación enviado")),
+                  if (emailResetCtrl.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Por favor ingresa un correo."),
+                      ),
+                    );
+                    return;
+                  }
+
+                  authController.sendPasswordResetEmail(
+                    emailResetCtrl.text.trim(),
+                    onSuccess: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Correo de recuperación enviado."),
+                        ),
+                      );
+                    },
+                    onError: (msg) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(msg)),
+                      );
+                    },
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ).copyWith(
                   backgroundColor:
-                      MaterialStateProperty.all(Colors.transparent),
+                      WidgetStateProperty.all(Colors.transparent),
                 ),
                 child: Ink(
                   decoration: const BoxDecoration(
@@ -386,6 +407,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // Inputs
   Widget _buildInput(TextEditingController c, String hint, IconData icon,
       bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
@@ -417,6 +439,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // Botones sociales
   Widget _buildSocialBtn(String asset, VoidCallback onTap) {
     return Ink(
       decoration: BoxDecoration(

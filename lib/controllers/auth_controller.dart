@@ -13,7 +13,7 @@ class AuthController extends ChangeNotifier {
   bool get loading => _loading;
   UserModel? _userModel;
   UserModel? get userModel => _userModel;
-  // ====== Login email/contraseña (opcional si usas local) ======
+  // Login email/contraseña (opcional si usa local) 
   Future<void> login(String email, String password) async {
     _loading = true;
     notifyListeners();
@@ -27,7 +27,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ====== SignOut general ======
+  //  SignOut general
   Future<void> signOut() async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -40,7 +40,7 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ====== Obtener modelo de usuario desde FirebaseAuth y Firestore ======
+  // Obtener modelo de usuario desde FirebaseAuth y Firestore
   Future<UserModel?> getCurrentUserModel() async {
     final user = _auth.currentUser;
     if (user == null) return null;
@@ -76,7 +76,7 @@ class AuthController extends ChangeNotifier {
 }
 
 
-  // ====== Facebook Login ======
+  // Facebook Login
   Future<void> loginWithFacebook({
     required Function(UserModel) onSuccess,
     required Function(String) onError,
@@ -122,4 +122,32 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Recuperar contraseña
+  // Envío de enlace de restablecimiento de contraseña
+Future<void> sendPasswordResetEmail(String email, {
+  required VoidCallback onSuccess,
+  required Function(String) onError,
+}) async {
+  try {
+    await _auth.sendPasswordResetEmail(email: email);
+    onSuccess();
+  } on FirebaseAuthException catch (e) {
+    String errorMessage;
+    switch (e.code) {
+      case 'invalid-email':
+        errorMessage = 'El correo no es válido.';
+        break;
+      case 'user-not-found':
+        errorMessage = 'No existe una cuenta con este correo.';
+        break;
+      default:
+        errorMessage = 'Ocurrió un error: ${e.message}';
+    }
+    onError(errorMessage);
+  } catch (e) {
+    onError('Error inesperado: $e');
+  }
+}
+
 }
