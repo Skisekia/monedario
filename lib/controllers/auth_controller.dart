@@ -5,11 +5,14 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 
+
+
 class AuthController extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _loading = false;
   bool get loading => _loading;
-
+  UserModel? _userModel;
+  UserModel? get userModel => _userModel;
   // ====== Login email/contraseña (opcional si usas local) ======
   Future<void> login(String email, String password) async {
     _loading = true;
@@ -63,6 +66,15 @@ class AuthController extends ChangeNotifier {
       provider: provider,
     );
   }
+  /// Navega a EditProfileView
+  Future<void> refreshUser() async {
+  final updatedUser = await getCurrentUserModel();
+  if (updatedUser != null) {
+    _userModel = updatedUser;
+    notifyListeners();
+  }
+}
+
 
   // ====== Facebook Login ======
   Future<void> loginWithFacebook({

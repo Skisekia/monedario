@@ -15,6 +15,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   lottie: ^2.7.0
   font_awesome_flutter: ^10.7.0
+  image_picker: ^0.8.7+3
 
   # Dependencias de Firebase 
   firebase_auth: ^5.6.2         # Para login/registro
@@ -38,11 +39,6 @@ flutter:
    
     - assets/google.png
     - assets/facebook.png
-    - assets/apple.png
-    - assets/cata_register.png
-    - assets/polita_login.png
-    - assets/welcome_cats.png
-    - assets/cat_login.png
-    - assets/icon_polita.png
-    - assets/icon_chikilin.png
-    - assets/icon_cata.png
+    - assets/finance_boy.json
+    - assets/girl_computer.json
+    - assets/avatar_boy.json
