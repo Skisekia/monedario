@@ -41,25 +41,58 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  // ==== POPUP GENÉRICO ====
+  // ==== POPUP MEJORADO ====
   void _showPopup(String message, {bool success = true}) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        contentPadding: const EdgeInsets.all(16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(success ? Icons.check_circle : Icons.error,
-                color: success ? Colors.green : Colors.red),
-            const SizedBox(width: 8),
-            Text(success ? "Éxito" : "Error"),
+            // Animación Lottie
+            SizedBox(
+              height: 200,
+              child: Lottie.asset(
+                success ? 'assets/send.json' : 'assets/girl_support.json',
+                repeat: false,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              success ? "¡Correo enviado!" : "Ups, ocurrió un error",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: success ? Colors.green[700] : Colors.red[700],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, color: Colors.black87),
+            ),
+            if (success) ...[
+              const SizedBox(height: 6),
+              Text(
+                "📌 Si no lo encuentras, revisa la carpeta de spam.",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+            ],
           ],
         ),
-        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Aceptar"),
+            child: const Text("Aceptar",
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -69,8 +102,7 @@ class _LoginViewState extends State<LoginView> {
   // ==== MODAL RECUPERAR CONTRASEÑA ====
   void _showForgotPasswordModal() {
     final emailResetCtrl = TextEditingController();
-    final authController =
-        Provider.of<AuthController>(context, listen: false);
+    final authController = Provider.of<AuthController>(context, listen: false);
 
     showModalBottomSheet(
       context: context,
@@ -78,6 +110,7 @@ class _LoginViewState extends State<LoginView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
+      // Ajustar el padding para teclado
       isScrollControlled: true,
       builder: (context) {
         return Padding(
@@ -90,6 +123,16 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Animación Lottie arriba del título
+              SizedBox(
+                height: 200,
+                child: Lottie.asset(
+                  'assets/girl_support.json',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              // ==== Título y campo de correo ====
+              const SizedBox(height: 5),
               const Text(
                 "Recuperar contraseña",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -116,13 +159,12 @@ class _LoginViewState extends State<LoginView> {
                     _showPopup("Por favor ingresa tu correo", success: false);
                     return;
                   }
-
                   await authController.sendPasswordResetEmail(
                     email,
                     onSuccess: () {
-                      Navigator.pop(context); // cerrar modal
+                      Navigator.pop(context);
                       _showPopup(
-                        "Se envió un enlace para restablecer tu contraseña. Revisa tu correo.",
+                        "Hemos enviado un enlace para restablecer tu contraseña.",
                         success: true,
                       );
                     },
@@ -176,7 +218,6 @@ class _LoginViewState extends State<LoginView> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
-
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
     return Scaffold(
@@ -422,6 +463,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // ==== Métodos auxiliares ====
   Widget _buildInput(TextEditingController c, String hint, IconData icon,
       bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {

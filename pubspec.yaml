@@ -42,3 +42,7 @@ flutter:
     - assets/finance_boy.json
     - assets/girl_computer.json
     - assets/avatar_boy.json
+    - assets/avatar_girl.json
+    - assets/girl_support.json
+    - assets/send.json
+    
