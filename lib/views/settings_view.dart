@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
@@ -12,11 +12,15 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const gradientColors = [
+      Color(0xFF250E2C),
+      Color(0xFF837AB6),
+      Color(0xFFF6A5C0),
+    ];
+
     final auth = Provider.of<AuthController>(context, listen: false);
     final controller = SettingsController(context);
     final loading = context.watch<AuthController>().loading;
-
-    const primaryColor = Color(0xFF78A3EB);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,35 +40,47 @@ class SettingsView extends StatelessWidget {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  // ===== HEADER CURVO AZUL CON PERFIL Y BOTÓN =====
+                  // ==== HEADER GRADIENTE CURVO ====
                   Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      // Curva azul
                       ClipPath(
                         clipper: _CurveClipper(),
                         child: Container(
-                          height: 280,
-                          color: primaryColor,
+                          height: 260,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: gradientColors,
+                            ),
+                          ),
                         ),
                       ),
-                      // Contenido centralizado en la zona azul
-                      Container(
-                        height: 280,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.only(top: 40),
+                      Positioned(
+                        top: 40,
+                        left: 16,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 26),
+                          onPressed: () =>
+                              Navigator.pushReplacementNamed(context, '/dashboard'),
+                        ),
+                      ),
+                      Positioned(
+                        top: 60,
+                        left: 0,
+                        right: 0,
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             ClipOval(
                               child: Container(
-                                width: 100,
-                                height: 100,
+                                width: 110,
+                                height: 110,
                                 color: Colors.white,
                                 child: Image.asset(
                                   getProfileIconByGender(user.gender),
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover ,// Ajustar imagen al círculo,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ),
@@ -84,31 +100,19 @@ class SettingsView extends StatelessWidget {
                                 fontSize: 14,
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: controller.goToEditProfile,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: const Text('Editar perfil'),
+                            const SizedBox(height: 10),
+                            _buildGradientButton(
+                              text: "Editar perfil",
+                              onTap: controller.goToEditProfile,
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 30),
 
-                  const SizedBox(height: 40),
-
-                  // ===== OPCIONES =====
+                  // ==== OPCIONES ====
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
@@ -116,31 +120,24 @@ class SettingsView extends StatelessWidget {
                         _buildOptionTile(
                           icon: Icons.download,
                           text: 'Descargar manual',
-                          color: primaryColor,
                           onTap: controller.downloadManual,
                         ),
                         _buildOptionTile(
                           icon: Icons.attach_money,
                           text: 'Cambiar tipo de moneda',
-                          color: primaryColor,
                           onTap: controller.changeCurrency,
                         ),
                         _buildOptionTile(
                           icon: Icons.history,
                           text: 'Historial de archivos',
-                          color: primaryColor,
                           onTap: controller.goToHistory,
                         ),
                         _buildOptionTile(
                           icon: Icons.help_outline,
                           text: 'Ayuda y soporte',
-                          color: primaryColor,
                           onTap: controller.goToHelp,
                         ),
-
                         const SizedBox(height: 30),
-
-                        // ===== BOTÓN CERRAR SESIÓN =====
                         ElevatedButton.icon(
                           icon: const Icon(Icons.logout),
                           label: loading
@@ -149,13 +146,11 @@ class SettingsView extends StatelessWidget {
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white),
-                                )
+                                    color: Colors.white))
                               : const Text('Cerrar sesión'),
                           onPressed: () => controller.confirmLogout(() async {
                             await auth.signOut();
                             if (!context.mounted) return;
-                            // Redirigir a la pantalla de bienvenida
                             Navigator.pushNamedAndRemoveUntil(
                               context, '/welcome', (_) => false);
                           }),
@@ -163,7 +158,7 @@ class SettingsView extends StatelessWidget {
                             backgroundColor: Colors.redAccent,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 12),
+                                horizontal: 32, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30)),
                           ),
@@ -171,7 +166,6 @@ class SettingsView extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -185,7 +179,6 @@ class SettingsView extends StatelessWidget {
   Widget _buildOptionTile({
     required IconData icon,
     required String text,
-    required Color color,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -195,7 +188,7 @@ class SettingsView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
-        leading: Icon(icon, color: color),
+        leading: Icon(icon, color: const Color(0xFF837AB6)),
         title: Text(text),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
@@ -204,9 +197,46 @@ class SettingsView extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildGradientButton({
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      height: 38,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ).copyWith(
+          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+        ),
+        child: Ink(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF250E2C),
+                Color(0xFF837AB6),
+                Color(0xFFF6A5C0),
+              ],
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style:
+                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-// Clipper para la curva superior del header
 class _CurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

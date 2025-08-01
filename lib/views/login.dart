@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
 import '../controllers/login_controller.dart';
-import '../controllers/auth_controller.dart';
+import 'modals_view.dart'; // Aquí estará tu función showForgotPasswordModal
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -28,7 +27,7 @@ class _LoginViewState extends State<LoginView> {
         if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
       },
       onError: (msg) {
-        _showPopup(msg, success: false);
+        // Aquí después usarás showErrorNotification(msg);
         setState(() => _loading = false);
       },
     );
@@ -39,178 +38,6 @@ class _LoginViewState extends State<LoginView> {
     _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
-  }
-
-  // ==== POPUP MEJORADO ====
-  void _showPopup(String message, {bool success = true}) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.white,
-        contentPadding: const EdgeInsets.all(16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Animación Lottie
-            SizedBox(
-              height: 200,
-              child: Lottie.asset(
-                success ? 'assets/send.json' : 'assets/girl_support.json',
-                repeat: false,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              success ? "¡Correo enviado!" : "Ups, ocurrió un error",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: success ? Colors.green[700] : Colors.red[700],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
-            ),
-            if (success) ...[
-              const SizedBox(height: 6),
-              Text(
-                "📌 Si no lo encuentras, revisa la carpeta de spam.",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Aceptar",
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==== MODAL RECUPERAR CONTRASEÑA ====
-  void _showForgotPasswordModal() {
-    final emailResetCtrl = TextEditingController();
-    final authController = Provider.of<AuthController>(context, listen: false);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      // Ajustar el padding para teclado
-      isScrollControlled: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Animación Lottie arriba del título
-              SizedBox(
-                height: 200,
-                child: Lottie.asset(
-                  'assets/girl_support.json',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              // ==== Título y campo de correo ====
-              const SizedBox(height: 5),
-              const Text(
-                "Recuperar contraseña",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailResetCtrl,
-                decoration: const InputDecoration(
-                  hintText: "Ingresa tu correo electrónico",
-                  prefixIcon: Icon(Icons.email, color: Color(0xFF837AB6)),
-                  filled: true,
-                  fillColor: Color(0xFFF4F6FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton(
-                onPressed: () async {
-                  final email = emailResetCtrl.text.trim();
-                  if (email.isEmpty) {
-                    _showPopup("Por favor ingresa tu correo", success: false);
-                    return;
-                  }
-                  await authController.sendPasswordResetEmail(
-                    email,
-                    onSuccess: () {
-                      Navigator.pop(context);
-                      _showPopup(
-                        "Hemos enviado un enlace para restablecer tu contraseña.",
-                        success: true,
-                      );
-                    },
-                    onError: (msg) {
-                      Navigator.pop(context);
-                      _showPopup(msg, success: false);
-                    },
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ).copyWith(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.transparent),
-                ),
-                child: Ink(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF250E2C),
-                        Color(0xFF837AB6),
-                        Color(0xFFF6A5C0),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                  ),
-                  child: Container(
-                    alignment: Alignment.center,
-                    height: 48,
-                    child: const Text(
-                      "Enviar enlace",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -317,7 +144,8 @@ class _LoginViewState extends State<LoginView> {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: _showForgotPasswordModal,
+                                  onPressed: () =>
+                                      showForgotPasswordModal(context),
                                   child: const Text(
                                     '¿Olvidaste tu contraseña?',
                                     style:
