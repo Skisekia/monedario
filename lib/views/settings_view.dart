@@ -22,23 +22,6 @@ class _SettingsViewState extends State<SettingsView> {
   bool fbConnected = false;
   bool googleConnected = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProviderStatus();
-  }
-
-  void _loadProviderStatus() async {
-    final auth = Provider.of<AuthController>(context, listen: false);
-    final user = await auth.getCurrentUserModel();
-    if (user != null) {
-      setState(() {
-        fbConnected = user.provider == "facebook.com";
-        googleConnected = user.provider == "google.com";
-      });
-    }
-  }
-
   Future<void> _pickImage() async {
     showModalBottomSheet(
       context: context,
@@ -73,13 +56,22 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
+  Widget buildProfileAvatar(String? gender) {
+    final asset = getProfileIconByGender(gender);
+    if (_profileImage != null) {
+      return CircleAvatar(radius: 50, backgroundImage: FileImage(_profileImage!));
+    }
+    if (asset.endsWith('.json')) {
+      return Lottie.asset(asset, width: 100, height: 100);
+    }
+    return CircleAvatar(radius: 100, backgroundImage: AssetImage(asset));
+  }
+
   @override
   Widget build(BuildContext context) {
-    const sectionTitleStyle =
-        TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold);
-
+    const sectionTitleStyle = TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold);
     final auth = Provider.of<AuthController>(context, listen: false);
-    final controller = SettingsController(context);
+    final settingsController = SettingsController(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -87,35 +79,21 @@ class _SettingsViewState extends State<SettingsView> {
         child: FutureBuilder<UserModel?>(
           future: auth.getCurrentUserModel(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
             final user = snapshot.data!;
+
+            fbConnected = user.provider == "facebook.com";
+            googleConnected = user.provider == "google.com";
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ===== Avatar con animación Lottie o foto subida =====
+                  // Avatar con botón de cámara
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      Container(
-                        width: 110,
-                        height: 110,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                        ),
-                        child: ClipOval(
-                          child: _profileImage != null
-                              ? Image.file(_profileImage!, fit: BoxFit.cover)
-                              : Lottie.asset(
-                                  getProfileIconByGender(user.gender),
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                      ),
+                      buildProfileAvatar(user.gender),
                       Positioned(
                         bottom: 0,
                         right: MediaQuery.of(context).size.width / 2 - 70,
@@ -123,118 +101,77 @@ class _SettingsViewState extends State<SettingsView> {
                           onTap: _pickImage,
                           child: Container(
                             padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                            child: const Icon(Icons.camera_alt,
-                                size: 18, color: Colors.purple),
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                            child: const Icon(Icons.camera_alt, size: 18, color: Colors.purple),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(user.name,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(user.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text(user.email, style: const TextStyle(color: Colors.grey)),
-
                   const SizedBox(height: 20),
 
-                  // ===== Sección Cuenta =====
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Cuenta", style: sectionTitleStyle)),
+                  // ===== CUENTA =====
+                  Align(alignment: Alignment.centerLeft, child: Text("Cuenta", style: sectionTitleStyle)),
                   ListTile(
                     leading: const Icon(Icons.person),
                     title: const Text("Editar perfil"),
-                    onTap: controller.goToEditProfile,
+                    onTap: settingsController.goToEditProfile,
                   ),
 
                   const SizedBox(height: 10),
 
-                  // ===== Configuración =====
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Configuración", style: sectionTitleStyle)),
+                  // ===== CONFIGURACIÓN =====
+                  Align(alignment: Alignment.centerLeft, child: Text("Configuración", style: sectionTitleStyle)),
                   ListTile(
                     leading: const Icon(Icons.attach_money),
                     title: const Text("Cambiar tipo de moneda"),
                     onTap: () => showCurrencyModal(context, (selected) {
-                      controller.changeCurrency(selected);
+                      settingsController.changeCurrency(selected);
                     }),
                   ),
                   ListTile(
                     leading: const Icon(Icons.language),
                     title: const Text("Cambiar idioma"),
                     onTap: () => showLanguageModal(context, (selected) {
-                      controller.changeLanguage(selected);
+                      settingsController.changeLanguage(selected);
                     }),
                   ),
                   ListTile(
                     leading: const Icon(Icons.history),
                     title: const Text("Historial de archivos"),
-                    onTap: controller.goToHistory,
+                    onTap: settingsController.goToHistory,
                   ),
 
                   const SizedBox(height: 10),
 
-                  // ===== Redes sociales =====
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Conexiones de cuenta",
-                          style: sectionTitleStyle)),
+                  // ===== CONEXIONES DE CUENTA =====
+                  Align(alignment: Alignment.centerLeft, child: Text("Conexiones de cuenta", style: sectionTitleStyle)),
                   SwitchListTile(
                     value: fbConnected,
-                    onChanged: (val) {
-                      setState(() => fbConnected = val);
-                      controller.toggleFacebook(val);
-                    },
+                    onChanged: (_) {},
                     title: const Text("Facebook"),
-                    secondary:
-                        const Icon(Icons.facebook, color: Colors.blue),
+                    secondary: const Icon(Icons.facebook, color: Colors.blue),
                   ),
                   SwitchListTile(
                     value: googleConnected,
-                    onChanged: (val) {
-                      setState(() => googleConnected = val);
-                      controller.toggleGoogle(val);
-                    },
+                    onChanged: (_) {},
                     title: const Text("Google"),
                     secondary: const Icon(Icons.g_mobiledata, color: Colors.red),
                   ),
 
-                  ListTile(
-                    leading: const Icon(Icons.share),
-                    title: const Text("Síguenos en nuestras redes"),
-                    onTap: controller.goToSocialLinks,
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ===== Ayuda y soporte =====
-                  ListTile(
-                    leading: const Icon(Icons.help_outline),
-                    title: const Text("Ayuda y soporte"),
-                    onTap: controller.goToHelp,
-                  ),
-
                   const SizedBox(height: 20),
 
-                  // ===== Botón cerrar sesión =====
+                  // ===== BOTÓN CERRAR SESIÓN =====
                   TextButton(
-                    onPressed: () => controller.confirmLogout(() async {
+                    onPressed: () => settingsController.confirmLogout(() async {
                       await auth.signOut();
                       if (!context.mounted) return;
-                      Navigator.pushNamedAndRemoveUntil(
-                          context, '/welcome', (_) => false);
+                      Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
                     }),
-                    child: const Text(
-                      "Cerrar sesión",
-                      style: TextStyle(
-                          color: Colors.red, fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("Cerrar sesión", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

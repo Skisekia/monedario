@@ -17,6 +17,7 @@ dependencies:
   font_awesome_flutter: ^10.7.0    # Para iconos de redes sociales
   image_picker: ^0.8.7+3         # Para seleccionar imágenes
   url_launcher: ^6.3.0         # Para abrir URLs
+  
 
   # Dependencias de Firebase 
   firebase_auth: ^5.6.2         # Para login/registro
@@ -26,6 +27,7 @@ dependencies:
   flutter_facebook_auth: ^6.1.1 # Para autenticación con Facebook
   sign_in_with_apple: ^6.1.0   # Para autenticación con Apple
   firebase_core: ^3.15.2      # Para inicializar Firebase
+  shared_preferences: ^2.5.3
 
 
 dev_dependencies:
