@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_header.dart';
+import 'package:monedario/utils/modals_view.dart';
 import '../../utils/button_nav_bar.dart';
-
-import 'statistics_view.dart';
+import 'balance_view.dart';
 import 'transaction_form_view.dart';
+import 'home_view.dart';
+import 'friends_view.dart';
 import 'settings_view.dart';
 
 class Dashboard extends StatefulWidget {
@@ -14,38 +15,45 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2; // Home
 
-  // Tus páginas reales
-  static const List<Widget> _views = [
-    SizedBox(), // Dashboard/Home (contenido principal lo agregas aquí)
-    StatisticsView(),
-    TransactionFormView(),
-    SettingsView(),
+  static final List<Widget> _views = [
+    BalanceView(),           // 0
+    TransactionFormView(),   // 1
+    HomeView(),              // 2
+    FriendsView(),           // 3
+    SettingsView(),          // 4
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 🔹 Header dinámico
-            AppHeader(currentIndex: _selectedIndex),
-
-            // 🔹 Vista seleccionada
-            Expanded(
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: _views,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: _views[_selectedIndex],
       bottomNavigationBar: AppBottomNavBar(
         selectedIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          if (index == 2) {
+            if (_selectedIndex == 2) {
+              // Ya estás en Home: NO hace nada
+              return;
+            }
+            if (_selectedIndex == 4) {
+              // Desde Settings: te regresa a Home
+              setState(() => _selectedIndex = 2);
+              return;
+            }
+            // En otras vistas: muestra el modal de agregar
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const ModalsView(),
+            );
+            return;
+          }
+          // Cambia de sección normalmente
+          setState(() => _selectedIndex = index);
+        },
       ),
     );
   }

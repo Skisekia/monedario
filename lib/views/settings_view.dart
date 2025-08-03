@@ -7,7 +7,7 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
-import 'modals_view.dart';
+import '../../utils/modals_view.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -57,7 +57,7 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   Widget buildProfileAvatar(String? gender) {
-    final asset = getProfileIconByGender(gender);
+    final asset = getProfileIconAssetPath(gender);
     if (_profileImage != null) {
       return CircleAvatar(radius: 90, backgroundImage: FileImage(_profileImage!));
     }
@@ -155,7 +155,7 @@ class _SettingsViewState extends State<SettingsView> {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.edit, color: iconColor, size: 21),
                   title: const Text("Editar perfil", style: TextStyle(fontSize: 15)),
-                  onTap: () => Navigator.pushNamed(context, '/edit_profile'),
+                  onTap: () => Navigator.pushNamed(context, '/edit_profile_view'),
                 ),
                 ListTile(
                   dense: true,
@@ -164,7 +164,7 @@ class _SettingsViewState extends State<SettingsView> {
                   leading: const Icon(Icons.group_add, color: iconColor, size: 21),
                   title: const Text("Vincular con otros usuarios", style: TextStyle(fontSize: 15)),
                   onTap: () {
-                    showFriendLinkModal(context);
+                    showInviteFriendCodeModal(context);
                   },
                 ),
                 const SizedBox(height: 5),

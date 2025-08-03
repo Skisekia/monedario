@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../controllers/login_controller.dart';
-import 'modals_view.dart'; // Aquí estará tu función showForgotPasswordModal
+import '../utils/modals_view.dart'; // Aquí estará tu función showForgotPasswordModal
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -181,7 +181,7 @@ class _LoginViewState extends State<LoginView> {
                                               BorderRadius.circular(16)),
                                     ).copyWith(
                                       backgroundColor:
-                                          MaterialStateProperty.all(
+                                          WidgetStateProperty.all(
                                               Colors.transparent),
                                     ),
                                     child: Ink(

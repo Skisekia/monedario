@@ -5,11 +5,12 @@ import '../../controllers/auth_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
 
+
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
   Widget buildProfileAvatar(String? gender) {
-    final asset = getProfileIconByGender(gender);
+    final asset = getProfileIconAssetPath(gender);
     if (asset.endsWith('.json')) {
       return Lottie.asset(asset, width: 300, height: 300);
     }

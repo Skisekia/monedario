@@ -1,7 +1,152 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
-import 'notifications_view.dart';
+import '../views/notifications_view.dart';
+
+
+class ModalsView extends StatelessWidget {
+  const ModalsView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 42,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "¿Qué deseas agregar?",
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF250E2C),
+            ),
+          ),
+          const SizedBox(height: 26),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _OptionButton(
+                icon: Icons.add_shopping_cart_rounded,
+                color: Colors.blueAccent,
+                label: 'Gasto',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navega a formulario de agregar gasto
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => AddExpenseView()));
+                },
+              ),
+              _OptionButton(
+                icon: Icons.attach_money_rounded,
+                color: Colors.green,
+                label: 'Ingreso',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navega a formulario de agregar ingreso
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => AddIncomeView()));
+                },
+              ),
+              _OptionButton(
+                icon: Icons.account_balance_wallet_rounded,
+                color: Colors.deepPurple,
+                label: 'Transacción',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navega a formulario de transacción
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => TransactionFormView()));
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _OptionButton(
+                icon: Icons.payments_rounded,
+                color: Colors.teal,
+                label: 'Pago',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => AddPaymentView()));
+                },
+              ),
+              _OptionButton(
+                icon: Icons.handshake_rounded,
+                color: Colors.orange,
+                label: 'Préstamo',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => AddLoanView()));
+                },
+              ),
+              _OptionButton(
+                icon: Icons.account_balance_rounded,
+                color: Colors.pink,
+                label: 'Deuda',
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => AddDebtView()));
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+}
+
+/// Botón visual para cada acción del modal central
+class _OptionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+
+  const _OptionButton({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Material(
+          color: color.withOpacity(0.15),
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Icon(icon, color: color, size: 30),
+            ),
+          ),
+        ),
+        const SizedBox(height: 7),
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
+}
 
 /// Modal para recuperar contraseña
 void showForgotPasswordModal(BuildContext context) {
@@ -283,4 +428,6 @@ void showFriendLinkModal(BuildContext context) {
       );
     },
   );
+
+  
 }

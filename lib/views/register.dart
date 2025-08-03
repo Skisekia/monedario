@@ -313,7 +313,7 @@ class _RegisterViewState extends State<RegisterView> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 2,
         ).copyWith(
-          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+          backgroundColor: WidgetStateProperty.all(Colors.transparent),
         ),
         child: Ink(
           decoration: const BoxDecoration(
