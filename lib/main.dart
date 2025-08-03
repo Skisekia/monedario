@@ -1,18 +1,23 @@
+// Importando paquetes
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 
+// Importando las vistas y controladores
 import 'views/splash_screen.dart';
 import 'views/welcome.dart';
 import 'package:monedario/views/login.dart' as login;
 import 'package:monedario/views/register.dart' as register;
 import 'package:monedario/views/forgot_password_view.dart' as forgot_password;
+import 'package:monedario/views/edit_profile_view.dart';
 import 'views/dashboard.dart';
 import 'views/settings_view.dart';
 
+// Importando controladores
 import 'controllers/auth_controller.dart';
+import 'controllers/transaction_controller.dart';
 import 'ui/theme.dart';
 
 void main() async {
@@ -26,9 +31,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthController(),
+   runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => TransactionController()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -56,6 +64,7 @@ class MyApp extends StatelessWidget {
         '/forgot_password': (ctx) => const forgot_password.ForgotPasswordView(),
         '/dashboard': (ctx) => const Dashboard(),
         '/settings_view': (ctx) => const SettingsView(),
+        '/edit_profile_view': (ctx) => const ProfileView(),
       },
     );
   }

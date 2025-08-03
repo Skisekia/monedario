@@ -10,36 +10,44 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Dependencias principales
-  provider: ^6.0.5      # Para gestión de estado
-  cupertino_icons: ^1.0.8      # Para iconos de iOS
-  lottie: ^2.7.0               # Para animaciones Lottie json
-  font_awesome_flutter: ^10.7.0    # Para iconos de redes sociales
-  image_picker: ^0.8.7+3         # Para seleccionar imágenes
-  url_launcher: ^6.3.0         # Para abrir URLs
   
-
-  # Dependencias de Firebase 
-  firebase_auth: ^5.6.2         # Para login/registro
-  cloud_firestore: ^5.6.11      # Para base de datos 
-  firebase_storage: ^12.4.9     # Para subir archivos
-  google_sign_in: ^6.2.1        # Para autenticación con Google
-  flutter_facebook_auth: ^6.1.1 # Para autenticación con Facebook
-  sign_in_with_apple: ^6.1.0   # Para autenticación con Apple
-  firebase_core: ^3.15.2      # Para inicializar Firebase
-  shared_preferences: ^2.5.3
-
+  # Dependencias principales
+  provider: ^6.0.5               # Gestión de estado
+  cupertino_icons: ^1.0.8        # Iconos de iOS
+  lottie: ^2.7.0                  # Animaciones Lottie
+  font_awesome_flutter: ^10.7.0  # Iconos de redes sociales
+  image_picker: ^0.8.7+3          # Selección de imágenes
+  url_launcher: ^6.3.0            # Abrir URLs
+  
+  # Firebase
+  firebase_core: ^3.15.2          # Inicializar Firebase
+  firebase_auth: ^5.6.2           # Login/registro
+  cloud_firestore: ^5.6.11        # Base de datos
+  firebase_storage: ^12.4.9       # Subida de archivos
+  google_sign_in: ^6.2.1          # Autenticación con Google
+  flutter_facebook_auth: ^6.1.1   # Autenticación con Facebook
+  sign_in_with_apple: ^6.1.0      # Autenticación con Apple
+  
+  # Utilidades
+  shared_preferences: ^2.5.3      # Almacenamiento local
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+
+# Configuración de icono de app
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo_monedario.png"
 
 flutter:
   uses-material-design: true
 
   assets:
-   
+    - assets/logo_monedario.png
     - assets/google.png
     - assets/facebook.png
     - assets/finance_boy.json
@@ -49,4 +57,3 @@ flutter:
     - assets/girl_support.json
     - assets/send.json
     - assets/avatar_default.json
-    

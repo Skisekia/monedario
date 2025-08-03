@@ -173,3 +173,114 @@ void showLanguageModal(BuildContext context, Function(String) onSelect) {
     },
   );
 }
+
+/// Modal para introducir código de invitación
+void showAddFriendCodeModal(BuildContext context) {
+  final TextEditingController codeController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Agregar amigo"),
+        content: TextField(
+          controller: codeController,
+          decoration: const InputDecoration(
+            labelText: "Código de invitación",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Lógica de vinculación aquí
+            },
+            child: const Text("Vincular"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Modal para mostrar código de invitación generado
+void showInviteFriendCodeModal(BuildContext context) {
+  const generatedCode = "ABCD1234";
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Invitar amigo"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Comparte este código con tu amigo:"),
+            const SizedBox(height: 10),
+            SelectableText(
+              generatedCode,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.purple),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cerrar"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Modal inferior para elegir entre agregar o invitar amigo
+void showFriendLinkModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.group_add, color: Colors.purple, size: 40),
+            const SizedBox(height: 10),
+            const Text(
+              "Vincular con otros usuarios",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.person_add, color: Colors.green),
+              title: const Text("Agregar amigo con código"),
+              subtitle: const Text("Introduce un código para vincularte"),
+              onTap: () {
+                Navigator.pop(context);
+                showAddFriendCodeModal(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.send, color: Colors.blue),
+              title: const Text("Invitar amigo"),
+              subtitle: const Text("Genera un código para compartir"),
+              onTap: () {
+                Navigator.pop(context);
+                showInviteFriendCodeModal(context);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
