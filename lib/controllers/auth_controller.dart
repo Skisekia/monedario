@@ -1,231 +1,233 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/notifications_view.dart';
 import '../models/user_model.dart';
 
-class AuthController extends ChangeNotifier {
+class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _loading = false;
-  bool get loading => _loading;
-  UserModel? _userModel;
-  UserModel? get userModel => _userModel;
 
-  // ==========================
-  // LOGIN EMAIL/PASSWORD
-  // ==========================
-  Future<void> login(String email, String password) async {
-    _loading = true;
-    notifyListeners();
+  // ========== INICIAR SESIÓN ==========
+  Future<void> login(
+    String email,
+    String password,
+    BuildContext context, {
+    required bool Function() mounted,
+  }) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = userCredential.user;
+      if (user != null && !user.emailVerified) {
+        await _auth.signOut();
+        if (mounted()) {
+          showErrorNotification(
+            context,
+            "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.",
+          );
+        }
+        return;
+      }
+      if (mounted()) {
+        showSuccessNotification(context, "¡Bienvenido de nuevo!");
+        // Aquí puedes navegar al dashboard si quieres
+      }
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message ?? 'Error de autenticación');
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
-  // ==========================
-  // SIGN OUT
-  // ==========================
-  Future<void> signOut() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      for (final info in user.providerData) {
-        if (info.providerId == 'google.com') await GoogleSignIn().signOut();
-        if (info.providerId == 'facebook.com') await FacebookAuth.instance.logOut();
+      if (mounted()) {
+        if (e.code == 'invalid-email') {
+          showErrorNotification(context, "El correo electrónico no es válido.");
+        } else if (e.code == 'user-disabled') {
+          showErrorNotification(context, "La cuenta ha sido deshabilitada.");
+        } else if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+          showErrorNotification(context, "Correo o contraseña incorrectos.");
+        } else {
+          showErrorNotification(context, "Ocurrió un error. Intenta de nuevo.");
+        }
+      }
+    } catch (_) {
+      if (mounted()) {
+        showErrorNotification(context, "Error desconocido. Intenta más tarde.");
       }
     }
-    await _auth.signOut();
-    notifyListeners();
   }
 
-  // ==========================
-  // OBTENER USUARIO ACTUAL
-  // ==========================
+  // ========== REGISTRO ==========
+  Future<void> register(
+    String email,
+    String password,
+    BuildContext context, {
+    required bool Function() mounted,
+  }) async {
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await userCredential.user?.sendEmailVerification();
+      if (mounted()) {
+        showSuccessNotification(
+          context,
+          "¡Registro exitoso! Verifica tu correo antes de iniciar sesión.",
+        );
+      }
+      // Puedes limpiar campos o redirigir si deseas
+    } on FirebaseAuthException catch (e) {
+      if (mounted()) {
+        if (e.code == 'email-already-in-use') {
+          showErrorNotification(context, "Ya existe una cuenta con este correo.");
+        } else if (e.code == 'invalid-email') {
+          showErrorNotification(context, "El correo electrónico no es válido.");
+        } else if (e.code == 'weak-password') {
+          showErrorNotification(context, "La contraseña es muy débil.");
+        } else {
+          showErrorNotification(context, "No se pudo completar el registro.");
+        }
+      }
+    } catch (_) {
+      if (mounted()) {
+        showErrorNotification(context, "Error desconocido. Intenta más tarde.");
+      }
+    }
+  }
+
+  // ========== RESETEAR CONTRASEÑA ==========
+  Future<void> resetPassword(
+    String email,
+    BuildContext context, {
+    required bool Function() mounted,
+  }) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      if (mounted()) {
+        showSuccessNotification(
+          context,
+          "Te hemos enviado un correo para restablecer tu contraseña.",
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted()) {
+        if (e.code == 'user-not-found') {
+          showErrorNotification(context, "No existe una cuenta con ese correo.");
+        } else if (e.code == 'invalid-email') {
+          showErrorNotification(context, "El correo electrónico no es válido.");
+        } else {
+          showErrorNotification(context, "No se pudo enviar el correo. Intenta de nuevo.");
+        }
+      }
+    } catch (_) {
+      if (mounted()) {
+        showErrorNotification(context, "Error desconocido. Intenta más tarde.");
+      }
+    }
+  }
+
+  // ========== CERRAR SESIÓN ==========
+  Future<void> signOut(
+    BuildContext context, {
+    required bool Function() mounted,
+  }) async {
+    try {
+      await _auth.signOut();
+      if (mounted()) {
+        showSuccessNotification(context, "Sesión cerrada correctamente.");
+        // Puedes redirigir al login aquí
+      }
+    } catch (_) {
+      if (mounted()) {
+        showErrorNotification(context, "No se pudo cerrar sesión. Intenta de nuevo.");
+      }
+    }
+  }
+
+  // ========== REENVIAR VERIFICACIÓN DE CORREO ==========
+  Future<void> resendEmailVerification(
+    BuildContext context, {
+    required bool Function() mounted,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        if (mounted()) {
+          showSuccessNotification(context, "Correo de verificación reenviado.");
+        }
+      } else {
+        if (mounted()) {
+          showErrorNotification(context, "El usuario no está autenticado o ya está verificado.");
+        }
+      }
+    } catch (_) {
+      if (mounted()) {
+        showErrorNotification(context, "No se pudo reenviar el correo de verificación.");
+      }
+    }
+  }
+
+  // ========== GETTERS RÁPIDOS ==========
+  User? get currentUser => _auth.currentUser;
+
+  bool get isLoggedIn => _auth.currentUser != null;
+
+  Future<bool> isEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.reload();
+      return user.emailVerified;
+    }
+    return false;
+  }
+
+  // ========== OBTENER USERMODEL DE FIRESTORE ==========
   Future<UserModel?> getCurrentUserModel() async {
     final user = _auth.currentUser;
     if (user == null) return null;
 
-    String provider = 'email';
-    final providerId =
-        user.providerData.isNotEmpty ? user.providerData.first.providerId : '';
-    if (providerId.contains("google")) provider = 'google';
-    if (providerId.contains("facebook")) provider = 'facebook';
-    if (providerId.contains("apple")) provider = 'apple';
-
-    String? gender;
     try {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      gender = doc.data()?['gender'];
-    } catch (_) {
-      gender = null;
-    }
-
-    return UserModel(
-      name: user.displayName ?? '',
-      email: user.email ?? '',
-      gender: gender ?? '',
-      provider: provider,
-    );
-  }
-
-  // ==========================
-  // REFRESCAR USUARIO
-  // ==========================
-  Future<void> refreshUser() async {
-    final updatedUser = await getCurrentUserModel();
-    if (updatedUser != null) {
-      _userModel = updatedUser;
-      notifyListeners();
-    }
-  }
-
-  // ==========================
-  // ACTUALIZAR PERFIL
-  // ==========================
-  Future<void> updateProfileData({
-    String? newName,
-    String? newPassword,
-    String? newEmail,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final providerId =
-        user.providerData.isNotEmpty ? user.providerData.first.providerId : '';
-
-    // Bloquear cambios si es Google/Facebook
-    if (providerId.contains("google") || providerId.contains("facebook")) {
-      throw FirebaseAuthException(
-        code: 'provider-linked',
-        message:
-            'Este perfil está vinculado a ${providerId.contains("google") ? "Google" : "Facebook"}. '
-            'Debes cambiar tu información desde la cuenta vinculada.',
-      );
-    }
-
-    // Cambiar nombre
-    if (newName != null && newName.isNotEmpty && newName != user.displayName) {
-      await user.updateDisplayName(newName);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'name': newName});
-    }
-
-    // Cambiar correo
-    if (newEmail != null && newEmail.isNotEmpty && newEmail != user.email) {
-      await user.verifyBeforeUpdateEmail(newEmail);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'email': newEmail});
-    }
-
-    // Cambiar contraseña
-    if (newPassword != null && newPassword.isNotEmpty) {
-      if (!_isPasswordStrong(newPassword)) {
-        throw FirebaseAuthException(
-          code: 'weak-password',
-          message:
-              'La contraseña debe tener al menos 6 caracteres, una mayúscula y un número.',
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        return UserModel(
+          name: data['name'] ?? user.displayName ?? '',
+          email: data['email'] ?? user.email ?? '',
+          gender: data['gender'] ?? '',
+          provider: data['provider'] ?? '',
+          profileIconAsset: data['profileIconAsset'],
         );
       }
-      await user.updatePassword(newPassword);
-    }
-
-    await refreshUser();
-  }
-
-  bool _isPasswordStrong(String password) {
-    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    final hasNumber = password.contains(RegExp(r'[0-9]'));
-    final hasMinLength = password.length >= 6;
-    return hasUppercase && hasNumber && hasMinLength;
-  }
-
-  // ==========================
-  // LOGIN CON FACEBOOK
-  // ==========================
-  Future<void> loginWithFacebook({
-    required Function(UserModel) onSuccess,
-    required Function(String) onError,
-  }) async {
-    _loading = true;
-    notifyListeners();
-
-    try {
-      final result = await FacebookAuth.instance.login();
-
-      if (result.status == LoginStatus.success) {
-        final credential =
-            FacebookAuthProvider.credential(result.accessToken!.token);
-        final userCredential = await _auth.signInWithCredential(credential);
-        final user = userCredential.user;
-
-        if (user != null) {
-          final docRef =
-              FirebaseFirestore.instance.collection('users').doc(user.uid);
-          final doc = await docRef.get();
-
-          if (!doc.exists) {
-            await docRef.set({
-              'name': user.displayName ?? '',
-              'email': user.email ?? '',
-              'gender': '',
-              'provider': 'facebook',
-            });
-          }
-
-          final model = await getCurrentUserModel();
-          if (model != null) {
-            onSuccess(model);
-          } else {
-            onError('Error al obtener los datos del usuario.');
-          }
-        }
-      } else {
-        onError('Inicio cancelado o fallido.');
-      }
+      // Si no existe en Firestore, regresa el usuario de Auth
+      return UserModel(
+        name: user.displayName ?? '',
+        email: user.email ?? '',
+        gender: '',
+        provider: '',
+        profileIconAsset: null,
+      );
     } catch (e) {
-      onError('Error: $e');
-    } finally {
-      _loading = false;
-      notifyListeners();
+      // Puedes loggear el error
+      return null;
     }
   }
 
-  // ==========================
-  // RESTABLECER CONTRASEÑA
-  // ==========================
-  Future<void> sendPasswordResetEmail(
-    String email, {
-    required VoidCallback onSuccess,
-    required Function(String) onError,
-  }) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      onSuccess();
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      switch (e.code) {
-        case 'invalid-email':
-          errorMessage = 'El correo no es válido.';
-          break;
-        case 'user-not-found':
-          errorMessage = 'No existe una cuenta con este correo.';
-          break;
-        default:
-          errorMessage = 'Ocurrió un error: ${e.message}';
-      }
-      onError(errorMessage);
-    } catch (e) {
-      onError('Error inesperado: $e');
-    }
+// ========== ACTUALIZAR DATOS DE PERFIL ==========
+  Future<void> updateProfileData({
+  required String newName,
+  String? newPassword,
+}) async {
+  final user = _auth.currentUser;
+  if (user == null) throw FirebaseAuthException(code: 'no-user', message: 'No hay usuario autenticado.');
+
+  // Actualiza nombre en FirebaseAuth y Firestore
+  await user.updateDisplayName(newName);
+  await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+    'name': newName,
+  });
+
+  // Actualiza la contraseña si se proporciona
+  if (newPassword != null && newPassword.isNotEmpty) {
+    await user.updatePassword(newPassword);
   }
+}
+
 }

@@ -24,10 +24,14 @@ class _LoginViewState extends State<LoginView> {
       emailCtrl: _emailCtrl,
       passCtrl: _passCtrl,
       onSuccess: () {
-        if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+        if (mounted) {
+          setState(() => _loading = false);
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
       },
       onError: (msg) {
-        setState(() => _loading = false);
+        if (mounted) setState(() => _loading = false);
+        // Si quieres mostrar un modal aquí, puedes usar showErrorNotification(context, msg);
       },
     );
   }

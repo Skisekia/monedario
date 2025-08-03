@@ -34,7 +34,7 @@ void main() async {
    runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthController()),
+        Provider<AuthController>(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => TransactionController()),
       ],
       child: const MyApp(),

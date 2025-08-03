@@ -103,7 +103,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                      onPressed: () => Navigator.pushNamed(context, '/settings'),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
 

@@ -9,7 +9,6 @@ class RegisterController {
   final TextEditingController nameCtrl;
   final TextEditingController emailCtrl;
   final TextEditingController passCtrl;
-  String gender;
   final VoidCallback onSuccess;
   final Function(String) onError;
 
@@ -19,7 +18,6 @@ class RegisterController {
     required this.nameCtrl,
     required this.emailCtrl,
     required this.passCtrl,
-    required this.gender,
     required this.onSuccess,
     required this.onError,
   });
@@ -53,7 +51,6 @@ class RegisterController {
           .set({
         'name': name,
         'email': email,
-        'gender': gender,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -77,7 +74,6 @@ class RegisterController {
       await docRef.set({
         'name': user.displayName ?? '',
         'email': user.email ?? '',
-        'gender': gender,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

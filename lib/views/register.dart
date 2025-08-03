@@ -13,7 +13,6 @@ class _RegisterViewState extends State<RegisterView> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  String _selectedGender = 'Masculino';
   bool _showPassword = false;
   bool _loading = false;
   late RegisterController _controller;
@@ -25,13 +24,17 @@ class _RegisterViewState extends State<RegisterView> {
       nameCtrl: _nameCtrl,
       emailCtrl: _emailCtrl,
       passCtrl: _passCtrl,
-      gender: _selectedGender,
+      // Si tu controller ya no requiere género, elimínalo de ahí también
       onSuccess: () {
-        if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+        if (mounted) {
+          setState(() => _loading = false);
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
       },
       onError: (msg) {
+        if (mounted) setState(() => _loading = false);
+        // Puedes usar showErrorNotification(context, msg); si ya lo tienes centralizado
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-        setState(() => _loading = false);
       },
     );
   }
@@ -49,8 +52,6 @@ class _RegisterViewState extends State<RegisterView> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
-
-    // 📌 Margen adaptativo para que la animación siempre esté pegada al card
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
     return Scaffold(
@@ -74,7 +75,7 @@ class _RegisterViewState extends State<RegisterView> {
               child: Column(
                 children: [
                   const SizedBox(height: 50),
-                  // 📌 Mensaje de bienvenida
+                  // Mensaje de bienvenida
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 42),
                     child: Align(
@@ -104,7 +105,7 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   const SizedBox(height: 10),
 
-                  // 📌 Card + Animación
+                  // Card + Animación
                   Expanded(
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -142,8 +143,6 @@ class _RegisterViewState extends State<RegisterView> {
                               _buildInput(_nameCtrl, "Nombre completo", Icons.person, false),
                               const SizedBox(height: 15),
                               _buildInput(_emailCtrl, "Correo electrónico", Icons.email, false),
-                              const SizedBox(height: 15),
-                              _buildDropdownSexo(),
                               const SizedBox(height: 15),
                               _buildInput(
                                 _passCtrl,
@@ -201,7 +200,7 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                         ),
 
-                        // 📌 Animación sobrepuesta al card
+                        // Animación sobrepuesta al card
                         Positioned(
                           top: isTablet ? -40 : -40,
                           left: 0,
@@ -223,7 +222,7 @@ class _RegisterViewState extends State<RegisterView> {
               ),
             ),
 
-            // 📌 Botón regresar
+            // Botón regresar
             Positioned(
               top: 16,
               left: 16,
@@ -271,31 +270,6 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
-  Widget _buildDropdownSexo() {
-    return DropdownButtonFormField<String>(
-      value: _selectedGender,
-      style: const TextStyle(color: Color(0xFF1B1D28), fontSize: 16),
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF837AB6)),
-        filled: true,
-        fillColor: const Color(0xFFF4F6FA),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      items: const [
-        DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
-        DropdownMenuItem(value: 'Femenino', child: Text('Femenino')),
-        DropdownMenuItem(value: 'Otro', child: Text('Otro')),
-      ],
-      onChanged: (value) {
-        if (value != null) setState(() => _selectedGender = value);
-      },
-    );
-  }
-
   Widget _buildRegisterButton() {
     return SizedBox(
       width: double.infinity,
@@ -305,7 +279,6 @@ class _RegisterViewState extends State<RegisterView> {
             ? null
             : () async {
                 setState(() => _loading = true);
-                _controller.gender = _selectedGender;
                 await _controller.registerUser(context);
               },
         style: ElevatedButton.styleFrom(

@@ -10,17 +10,17 @@ class UserModel {
     required this.email,
     this.gender,
     this.provider,
-    this.profileIconAsset, // <-- nuevo campo opcional
+    this.profileIconAsset,
   });
 
-  // Constructor para crear desde un Map (por ejemplo, Firestore o JSON)
+  // Constructor para crear desde un Map (Firestore/JSON)
   factory UserModel.fromMap(Map<String, dynamic> data) {
     return UserModel(
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       gender: data['gender'],
       provider: data['provider'],
-      profileIconAsset: data['profileIconAsset'], // <-- lee el campo si existe
+      profileIconAsset: data['profileIconAsset'],
     );
   }
 
@@ -31,7 +31,7 @@ class UserModel {
       'email': email,
       'gender': gender,
       'provider': provider,
-      'profileIconAsset': profileIconAsset, // <-- guarda el campo si existe
+      'profileIconAsset': profileIconAsset,
     };
   }
 }

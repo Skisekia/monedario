@@ -345,7 +345,7 @@ void showTransactionActionsModal(BuildContext context) {
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => ModalsView(),
+    builder: (_) => const ModalsView(),
   );
 }
 
@@ -392,18 +392,12 @@ void showForgotPasswordModal(BuildContext context) {
                   showErrorNotification(context, "Por favor ingresa tu correo");
                   return;
                 }
-                await authController.sendPasswordResetEmail(
+                await authController.resetPassword(
                   email,
-                  onSuccess: () {
-                    Navigator.pop(context);
-                    showSuccessNotification(
-                        context, "Hemos enviado un enlace para restablecer tu contraseña.");
-                  },
-                  onError: (msg) {
-                    Navigator.pop(context);
-                    showErrorNotification(context, msg);
-                  },
+                  context,
+                  mounted: () => Navigator.of(context).mounted,
                 );
+                Navigator.pop(context); // Cierra el modal al terminar
               },
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.zero,
@@ -626,5 +620,3 @@ void showFriendLinkModal(BuildContext context) {
     },
   );
 }
-
-

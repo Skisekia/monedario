@@ -88,14 +88,17 @@ class _SettingsViewState extends State<SettingsView> {
           // No hay línea ni sombra ni title ni back
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout, color: iconColor),
-              tooltip: "Cerrar sesión",
-              onPressed: () => settingsController.confirmLogout(() async {
-                await auth.signOut();
-                if (!context.mounted) return;
-                Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
-              }),
-            ),
+            icon: const Icon(Icons.logout, color: iconColor),
+            tooltip: "Cerrar sesión",
+            onPressed: () => settingsController.confirmLogout(() async {
+              await auth.signOut(
+                context,
+                mounted: () => mounted,
+              );
+              if (!mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
+            }),
+          ),
           ],
         ),
       ),
