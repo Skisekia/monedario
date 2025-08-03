@@ -5,27 +5,15 @@ import '../models/user_model.dart';
 import '../utils/icon_mapper.dart';
 
 class AppHeader extends StatelessWidget {
-  final bool showAvatar;
-  final bool showWelcome;
-  final bool showBackButton;
-  final String? rightIconAsset;         // Ej: 'assets/icons/notification.png'
-  final IconData? rightIconData;        // Alternativa si usas iconos nativos
-  final VoidCallback? onRightIconTap;
-  final VoidCallback? onBackTap;
-  final String? customWelcome;          // Ej: "Hola,"
-  final Color? backgroundColor;
+  final bool isHome;                   // True = dashboard, False = otras vistas
+  final VoidCallback? onHomeTap;       // Para cuando el usuario toca el icono de Home
+  final VoidCallback? onNotifTap;      // Para cuando toca notificaciones
 
   const AppHeader({
     super.key,
-    this.showAvatar = true,
-    this.showWelcome = true,
-    this.showBackButton = false,
-    this.rightIconAsset,
-    this.rightIconData,
-    this.onRightIconTap,
-    this.onBackTap,
-    this.customWelcome,
-    this.backgroundColor,
+    this.isHome = false,
+    this.onHomeTap,
+    this.onNotifTap,
   });
 
   @override
@@ -33,88 +21,71 @@ class AppHeader extends StatelessWidget {
     final auth = Provider.of<AuthController>(context, listen: false);
 
     return Container(
-      color: backgroundColor ?? Colors.transparent,
-      padding: const EdgeInsets.only(top: 36, left: 20, right: 20, bottom: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+      // Puedes personalizar el color de fondo aquí si tu diseño lo necesita
       child: FutureBuilder<UserModel?>(
         future: auth.getCurrentUserModel(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SizedBox(
-              height: 62,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: LinearProgressIndicator(),
-              ),
-            );
-          }
-          final user = snapshot.data;
+          Widget leftWidget;
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Botón de Back o Avatar
-              if (showBackButton)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 28),
-                  onPressed: onBackTap ?? () => Navigator.of(context).pop(),
-                )
-              else if (showAvatar && user != null)
+          // Si es Home: Avatar + mensaje
+          if (isHome && snapshot.hasData) {
+            final user = snapshot.data!;
+            leftWidget = Row(
+              children: [
                 SizedBox(
-                  width: 52, height: 52,
+                  width: 52,
+                  height: 52,
                   child: getProfileIconWidget(
                     user.gender,
                     customAsset: user.profileIconAsset,
                   ),
-                )
-              else
-                const SizedBox(width: 52), // Placeholder para alineación
-
-              const SizedBox(width: 16),
-
-              // Mensaje de bienvenida y nombre
-              if (showWelcome && user != null)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        customWelcome ?? "Hello,",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
-                        ),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "¡Bienvenido!",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black54,
                       ),
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                    ),
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                    ],
-                  ),
-                )
-              else
-                const Spacer(),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          } else {
+            // Si NO es home: mostrar icono de Home
+            leftWidget = IconButton(
+              icon: const Icon(Icons.home_rounded, size: 36, color: Colors.black87),
+              onPressed: onHomeTap ?? () {
+                // Por defecto navega al dashboard/home
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            );
+          }
 
-              // Ícono derecho
-              if (rightIconAsset != null)
-                GestureDetector(
-                  onTap: onRightIconTap,
-                  child: Image.asset(
-                    rightIconAsset!,
-                    width: 28, height: 28,
-                  ),
-                )
-              else if (rightIconData != null)
-                IconButton(
-                  icon: Icon(rightIconData, size: 28),
-                  onPressed: onRightIconTap,
-                )
-              else
-                const SizedBox(width: 28), // Placeholder para alineación
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              leftWidget,
+              IconButton(
+                icon: const Icon(Icons.notifications_none_rounded, size: 30, color: Colors.black87),
+                onPressed: onNotifTap ?? () {
+                  // Aquí  la navegación a notificaciones
+                },
+              ),
             ],
           );
         },

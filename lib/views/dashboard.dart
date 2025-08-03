@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:monedario/utils/modals_view.dart';
+import 'package:monedario/utils/modals_view.dart'; // Ajusta la ruta si es necesario
 import '../../utils/button_nav_bar.dart';
 import 'balance_view.dart';
 import 'transaction_form_view.dart';
@@ -42,7 +42,17 @@ class _DashboardState extends State<Dashboard> {
               setState(() => _selectedIndex = 2);
               return;
             }
-            // En otras vistas: muestra el modal de agregar
+            // Si estás en la vista de Balance, muestra el modal de balance
+            if (_selectedIndex == 0) {
+              showBalanceActionsModal(context);
+              return;
+            }
+            // Si estás en la vista de Amigos, muestra el modal de amigos
+            if (_selectedIndex == 3) {
+              showFriendsActionsModal(context);
+              return;
+            }
+            // En otras vistas: muestra el modal de agregar clásico
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,

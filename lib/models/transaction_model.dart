@@ -1,47 +1,29 @@
-// lib/models/transaction_model.dart
-
-enum TransactionType {
-  income,
-  expense,
-  loanTaken,    // Préstamo solicitado
-  loanGiven,    // Préstamo otorgado
-  purchase,
-  creditPurchase,
-  payment,
-  transfer,
-}
+import 'enums.dart';
 
 class TransactionModel {
-  String id;
-  TransactionType type;
-  double amount;
-  DateTime date;
-  String description;
-  // Para préstamos
-  String? counterparty;  // Persona o entidad
-  double? interestRate;
-  String? frequency;     // semana, quincena, mes
-  int? numPayments;
-  double? remainingAmount;
-  // Para transferencias
-  String? fromAccount;
-  String? toAccount;
-  // Etiquetas
-  String? userTag;
+  final String id;
+  final TransactionType type;
+  final AccountType accountType;
+  final double amount;
+  final DateTime date;
+  final String? description;
+  final String? counterparty;
+  final double? interestRate;
+  final String? frequency;
+  final int? numPayments;
 
   TransactionModel({
     required this.id,
     required this.type,
+    required this.accountType,
     required this.amount,
     required this.date,
-    required this.description,
+    this.description,
     this.counterparty,
     this.interestRate,
     this.frequency,
     this.numPayments,
-    this.remainingAmount,
-    this.fromAccount,
-    this.toAccount,
-    this.userTag,
   });
+
+  // Si usas Firestore, aquí van los métodos fromJson/toJson.
 }
