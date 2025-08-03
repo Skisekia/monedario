@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
         '/forgot_password': (ctx) => const forgot_password.ForgotPasswordView(),
         '/dashboard': (ctx) => const Dashboard(),
         '/settings_view': (ctx) => const SettingsView(),
-        '/edit_profile_view': (ctx) => const ProfileView(),
+        '/edit_profile_view': (ctx) => const EditProfileView(),
       },
     );
   }

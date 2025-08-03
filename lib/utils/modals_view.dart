@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
+import 'notifications_view.dart';
 
 // ========== TU MODAL ORIGINAL CENTRAL (ModalsView) ==========
 class ModalsView extends StatelessWidget {
@@ -626,23 +627,4 @@ void showFriendLinkModal(BuildContext context) {
   );
 }
 
-void showErrorNotification(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: Colors.red,
-      content: Text(message, style: const TextStyle(color: Colors.white)),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
-
-void showSuccessNotification(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: Colors.green,
-      content: Text(message, style: const TextStyle(color: Colors.white)),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
 

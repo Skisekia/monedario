@@ -164,7 +164,7 @@ class _SettingsViewState extends State<SettingsView> {
                   leading: const Icon(Icons.group_add, color: iconColor, size: 21),
                   title: const Text("Vincular con otros usuarios", style: TextStyle(fontSize: 15)),
                   onTap: () {
-                    showInviteFriendCodeModal(context);
+                    showFriendLinkModal(context);
                   },
                 ),
                 const SizedBox(height: 5),
