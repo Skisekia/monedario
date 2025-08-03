@@ -54,11 +54,12 @@ class _TransactionFormViewState extends State<TransactionFormView> {
     return Column(
       children: [
         AppHeader(
-          isHome: false,
+          showHome: false,
           //title: "Cartera",
-          onHomeTap: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
+         onHomeTap: () {
+            Navigator.pushNamedAndRemoveUntil(context, '/home_view', (route) => false);
           },
+
         ),
 
         // ----- RESUMEN DE CARTERA -----

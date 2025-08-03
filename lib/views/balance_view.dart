@@ -9,13 +9,11 @@ class BalanceView extends StatelessWidget {
     return Column(
       children: [
         AppHeader(
-          isHome: false,
-          onHomeTap: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          onNotifTap: () {
-            // Acción para notificaciones
-          },
+          showHome: true, // Cambia a false si no quieres mostrar el icono home
+         onHomeTap: () {
+          Navigator.pushNamedAndRemoveUntil(context, '/home_view', (route) => false);
+        },
+
         ),
         const Expanded(
           child: Center(

@@ -10,7 +10,7 @@ class HomeView extends StatelessWidget {
     // final w = MediaQuery.of(context).size.width;  // Quita si no usas
     return Column(
       children: [
-        const AppHeader(isHome: true),
+        const AppHeader(showHome: false),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(top: 0, left: 16, right: 16, bottom: 12),
