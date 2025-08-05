@@ -2,15 +2,20 @@ import 'enums.dart';
 
 class TransactionModel {
   final String id;
-  final TransactionType type;
-  final AccountType accountType;
+  final TransactionType type;      // ingreso, gasto, deuda, etc.
+  final AccountType accountType;   // cash, card, credit…
   final double amount;
   final DateTime date;
+
   final String? description;
   final String? counterparty;
   final double? interestRate;
   final String? frequency;
   final int? numPayments;
+
+  // ────────── NUEVOS CAMPOS ──────────
+  double paid;     // monto ya abonado
+  bool   isPaid;   // true cuando la deuda está liquidada
 
   TransactionModel({
     required this.id,
@@ -23,7 +28,12 @@ class TransactionModel {
     this.interestRate,
     this.frequency,
     this.numPayments,
+
+    // nuevos con valores por defecto
+    this.paid = 0,
+    this.isPaid = false,
   });
 
-  // Si usas Firestore, aquí van los métodos fromJson/toJson.
+  // Monto restante (útil para vistas y forms)
+  double get remaining => amount - paid;
 }

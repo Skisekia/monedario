@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import 'notifications_view.dart';
 
-// ========== TU MODAL ORIGINAL CENTRAL (ModalsView) ==========
+//  MODAL ORIGINAL CENTRAL 
 class ModalsView extends StatelessWidget {
   const ModalsView({super.key});
 
@@ -35,321 +35,14 @@ class ModalsView extends StatelessWidget {
               color: Color(0xFF250E2C),
             ),
           ),
-          const SizedBox(height: 26),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.add_shopping_cart_rounded,
-                color: Colors.blueAccent,
-                label: 'Gasto',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.attach_money_rounded,
-                color: Colors.green,
-                label: 'Ingreso',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.account_balance_wallet_rounded,
-                color: Colors.deepPurple,
-                label: 'Transacción',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.payments_rounded,
-                color: Colors.teal,
-                label: 'Pago',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.handshake_rounded,
-                color: Colors.orange,
-                label: 'Préstamo',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.account_balance_rounded,
-                color: Colors.pink,
-                label: 'Deuda',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+          // 
         ],
       ),
     );
   }
 }
 
-// ========== BOTÓN REUTILIZABLE ==========
-class _OptionButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final VoidCallback onTap;
-
-  const _OptionButton({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Material(
-          color: color.withAlpha(38),
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Icon(icon, color: color, size: 30),
-            ),
-          ),
-        ),
-        const SizedBox(height: 7),
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-}
-
-// ========== MODALES NUEVOS PARA BALANCE Y AMIGOS ==========
-
-/// MODAL DE ACCIONES DE BALANCE
-void showBalanceActionsModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 42,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Opciones de Balance",
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF250E2C),
-            ),
-          ),
-          const SizedBox(height: 26),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.attach_money_rounded,
-                color: Colors.green,
-                label: 'Añadir ingreso',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.add_shopping_cart_rounded,
-                color: Colors.blueAccent,
-                label: 'Añadir gasto',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.credit_card_rounded,
-                color: Colors.deepPurple,
-                label: 'Añadir tarjeta',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.analytics_rounded,
-                color: Colors.teal,
-                label: 'Ver gráficas',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.calendar_month_rounded,
-                color: Colors.orange,
-                label: 'Fechas de pago',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.pie_chart_rounded,
-                color: Colors.pink,
-                label: 'Estadísticas',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    ),
-  );
-}
-
-/// MODAL DE ACCIONES DE AMIGOS
-void showFriendsActionsModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 42,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Opciones de Amigos",
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF250E2C),
-            ),
-          ),
-          const SizedBox(height: 26),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.person_add_rounded,
-                color: Colors.green,
-                label: 'Agregar amigo',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.group_rounded,
-                color: Colors.blueAccent,
-                label: 'Ver grupos',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.handshake_rounded,
-                color: Colors.deepPurple,
-                label: 'Préstamos/Deudas',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _OptionButton(
-                icon: Icons.delete_rounded,
-                color: Colors.pink,
-                label: 'Eliminar amigo',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.link_rounded,
-                color: Colors.orange,
-                label: 'Vincular amigo',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              _OptionButton(
-                icon: Icons.send_rounded,
-                color: Colors.teal,
-                label: 'Invitar amigo',
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    ),
-  );
-}
-
-/// MODAL DE ACCIONES DE TRANSACCIONES (por si quieres llamarlo por función)
-void showTransactionActionsModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => const ModalsView(),
-  );
-}
-
-// ========== TUS MODALES ORIGINALES (NO SE MODIFICAN) ==========
+// MODAL RECUPERAR CONTRASEÑA
 
 void showForgotPasswordModal(BuildContext context) {
   final emailResetCtrl = TextEditingController();
@@ -436,6 +129,8 @@ void showForgotPasswordModal(BuildContext context) {
   );
 }
 
+// MODAL SELECCIÓN DE MONEDA E IDIOMA
+
 void showCurrencyModal(BuildContext context, Function(String) onSelect) {
   final currencies = [
     {"code": "MXN", "name": "Peso Mexicano", "icon": Icons.attach_money},
@@ -474,6 +169,7 @@ void showCurrencyModal(BuildContext context, Function(String) onSelect) {
   );
 }
 
+// MODAL SELECCIÓN DE IDIOMA
 void showLanguageModal(BuildContext context, Function(String) onSelect) {
   final languages = [
     {"name": "Español", "flag": "🇪🇸"},
@@ -513,6 +209,8 @@ void showLanguageModal(BuildContext context, Function(String) onSelect) {
   );
 }
 
+// MODAL CÓDIGO DE AMIGO
+
 void showAddFriendCodeModal(BuildContext context) {
   final TextEditingController codeController = TextEditingController();
 
@@ -546,8 +244,10 @@ void showAddFriendCodeModal(BuildContext context) {
   );
 }
 
+// MODAL INVITAR AMIGO
 void showInviteFriendCodeModal(BuildContext context) {
   const generatedCode = "ABCD1234";
+
 
   showDialog(
     context: context,
@@ -576,6 +276,7 @@ void showInviteFriendCodeModal(BuildContext context) {
   );
 }
 
+// MODAL VINCULAR AMIGOS
 void showFriendLinkModal(BuildContext context) {
   showModalBottomSheet(
     context: context,

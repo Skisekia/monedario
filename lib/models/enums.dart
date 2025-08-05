@@ -12,4 +12,5 @@ enum TransactionType {
   loanGiven,
   loanTaken,
   payment,
+  debt,
 }

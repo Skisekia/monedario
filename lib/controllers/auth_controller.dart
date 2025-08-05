@@ -7,20 +7,24 @@ import '../models/user_model.dart';
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ========== INICIAR SESIÓN ==========
+  // Login de usuario
   Future<void> login(
     String email,
     String password,
     BuildContext context, {
+  // Esta función se usa para iniciar sesión
     required bool Function() mounted,
   }) async {
+    // Verifica que el usuario esté montado antes de mostrar notificaciones
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+      // Verifica si el usuario está verificado
       final user = userCredential.user;
       if (user != null && !user.emailVerified) {
+        // Si no está verificado, cierra sesión y muestra notificación
         await _auth.signOut();
         if (mounted()) {
           showErrorNotification(
@@ -53,18 +57,21 @@ class AuthController {
     }
   }
 
-  // ========== REGISTRO ==========
+  // Registro de usuario
   Future<void> register(
     String email,
     String password,
     BuildContext context, {
+  // Esta función se usa para registrar un nuevo usuario
     required bool Function() mounted,
   }) async {
     try {
+      // Crea un nuevo usuario
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      // Envía un correo de verificación
       await userCredential.user?.sendEmailVerification();
       if (mounted()) {
         showSuccessNotification(
@@ -72,7 +79,7 @@ class AuthController {
           "¡Registro exitoso! Verifica tu correo antes de iniciar sesión.",
         );
       }
-      // Puedes limpiar campos o redirigir si deseas
+      // Mensaje de éxito y redirigir al login si es necesario
     } on FirebaseAuthException catch (e) {
       if (mounted()) {
         if (e.code == 'email-already-in-use') {
@@ -92,14 +99,17 @@ class AuthController {
     }
   }
 
-  // ========== RESETEAR CONTRASEÑA ==========
+  // Resetear contraseña
   Future<void> resetPassword(
     String email,
+    // Esta función se usa para enviar un correo de restablecimiento de contraseña
     BuildContext context, {
     required bool Function() mounted,
+    // Asegura que el usuario esté montado antes de mostrar notificaciones
   }) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
+      // Notifica al usuario que se envió el correo
       if (mounted()) {
         showSuccessNotification(
           context,
@@ -123,7 +133,7 @@ class AuthController {
     }
   }
 
-  // ========== CERRAR SESIÓN ==========
+  // Cerrar sesión y muestra notificación
   Future<void> signOut(
     BuildContext context, {
     required bool Function() mounted,
@@ -132,7 +142,7 @@ class AuthController {
       await _auth.signOut();
       if (mounted()) {
         showSuccessNotification(context, "Sesión cerrada correctamente.");
-        // Puedes redirigir al login aquí
+        // Redirige al login o pantalla inicial si es necesario
       }
     } catch (_) {
       if (mounted()) {
@@ -141,7 +151,7 @@ class AuthController {
     }
   }
 
-  // ========== REENVIAR VERIFICACIÓN DE CORREO ==========
+  // Reenviar correo de verificación 
   Future<void> resendEmailVerification(
     BuildContext context, {
     required bool Function() mounted,

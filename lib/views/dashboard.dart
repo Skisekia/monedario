@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:monedario/utils/modals_view.dart'; // Ajusta la ruta si es necesario
+
 import '../../utils/button_nav_bar.dart';
+import '../../utils/modals_nav.dart';
+
 import 'balance_view.dart';
 import 'transaction_form_view.dart';
 import 'home_view.dart';
@@ -17,12 +19,14 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 2; // Home
 
+  // Orden original: Balance(0) – Cartera(1) – Home(2) – Amigos(3) – Settings(4)
+  // No agregamos nuevas vistas para no romper la barra
   static final List<Widget> _views = [
-    BalanceView(),           // 0
-    TransactionFormView(),   // 1
-    HomeView(),              // 2
-    FriendsView(),           // 3
-    SettingsView(),          // 4
+    BalanceView(),
+    TransactionFormView(), // “Cartera” o transacciones
+    HomeView(),
+    FriendsView(),
+    SettingsView(),
   ];
 
   @override
@@ -32,36 +36,27 @@ class _DashboardState extends State<Dashboard> {
       bottomNavigationBar: AppBottomNavBar(
         selectedIndex: _selectedIndex,
         onTap: (index) {
+          // ────────── Pulsan el botón central (+ / Home) ──────────
           if (index == 2) {
-            if (_selectedIndex == 2) {
-              // Ya estás en Home: NO hace nada
-              return;
+            switch (_selectedIndex) {
+              case 0:
+                showBalanceActionsModal(context);
+                return;
+              case 1:
+                showTransactionActionsModal(context);
+                return;
+              case 3:
+                showFriendsActionsModal(context);
+                return;
+              case 4:
+                // Desde Settings vuelve a Home
+                setState(() => _selectedIndex = 2);
+                return;
+              default:
+                return; // Ya estás en Home
             }
-            if (_selectedIndex == 4) {
-              // Desde Settings: te regresa a Home
-              setState(() => _selectedIndex = 2);
-              return;
-            }
-            // Si estás en la vista de Balance, muestra el modal de balance
-            if (_selectedIndex == 0) {
-              showBalanceActionsModal(context);
-              return;
-            }
-            // Si estás en la vista de Amigos, muestra el modal de amigos
-            if (_selectedIndex == 3) {
-              showFriendsActionsModal(context);
-              return;
-            }
-            // En otras vistas: muestra el modal de agregar clásico
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => const ModalsView(),
-            );
-            return;
           }
-          // Cambia de sección normalmente
+          // Cambio normal de pestaña
           setState(() => _selectedIndex = index);
         },
       ),

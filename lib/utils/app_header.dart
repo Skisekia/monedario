@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+//header de la app, reutilizable en varias pantallas
 class AppHeader extends StatelessWidget {
   final VoidCallback? onHomeTap;
   final VoidCallback? onNotifTap;
   final bool showHome;
   final bool showNotif;
-
+// Constructor con parámetros opcionales
   const AppHeader({
     this.onHomeTap,
     this.onNotifTap,
@@ -13,7 +14,7 @@ class AppHeader extends StatelessWidget {
     this.showNotif = false,
     super.key,
   });
-
+// Constructor con parámetros obligatorios
   @override
   Widget build(BuildContext context) {
     return SafeArea(

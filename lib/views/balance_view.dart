@@ -9,9 +9,10 @@ class BalanceView extends StatelessWidget {
     return Column(
       children: [
         AppHeader(
-          showHome: true, // Cambia a false si no quieres mostrar el icono home
+          showHome: true, // Cambia a false si no se quiere mostrar el icono home
          onHomeTap: () {
-          Navigator.pushNamedAndRemoveUntil(context, '/home_view', (route) => false);
+          // Navega a la vista de inicio
+          Navigator.pushNamedAndRemoveUntil(context, '/home_view', (route) => true);
         },
 
         ),
