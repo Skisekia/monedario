@@ -1,6 +1,8 @@
-// 📄 lib/views/debt_detail_view.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../models/transaction_model.dart';
+//import '../models/enums.dart';
 
 class DebtDetailView extends StatelessWidget {
   final TransactionModel debt;
@@ -9,18 +11,26 @@ class DebtDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = debt.amount - debt.paid;
+    final df        = DateFormat('dd/MM/yyyy');
+
     return Scaffold(
-      appBar: AppBar(title: Text('Detalle — ${debt.description}')),
+      appBar: AppBar(title: Text('Detalle — ${debt.concept}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
-            _row('Monto total', '\$${debt.amount.toStringAsFixed(2)}'),
-            _row('Pagado', '\$${debt.paid.toStringAsFixed(2)}'),
-            _row('Restante', '\$${remaining.toStringAsFixed(2)}',
+            _row('Concepto'       , debt.concept),
+            _row('Acreedor'       , debt.owner),
+            _row('Monto total'    , '\$${debt.amount.toStringAsFixed(2)}'),
+            _row('Pagado'         , '\$${debt.paid.toStringAsFixed(2)}'),
+            _row('Restante'       , '\$${remaining.toStringAsFixed(2)}',
                 valueColor: remaining == 0 ? Colors.green : null),
-            const Divider(height: 32),
+            _row('Vencimiento'    , df.format(debt.dueDate)),
+            _row('Frecuencia'     , _freqLabel(debt.frequency)),
+            _row('Nº de pagos'    , debt.numPayments.toString()),
+            _row('Tipo cuenta'    , debt.accountType.name),
+            _row('Creado'         , df.format(debt.createdAt)),
+            const SizedBox(height: 28),
             const Text('Historial de pagos',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
@@ -42,4 +52,11 @@ class DebtDetailView extends StatelessWidget {
           ],
         ),
       );
+
+  /* traducción bonita */
+  String _freqLabel(PaymentFreq f) => switch (f) {
+        PaymentFreq.mensual   => 'Mensual',
+        PaymentFreq.quincenal => 'Quincenal',
+        PaymentFreq.semanal   => 'Semanal',
+      };
 }

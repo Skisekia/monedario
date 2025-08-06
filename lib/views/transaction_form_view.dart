@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+
 import '../controllers/transaction_controller.dart';
-import '../models/transaction_model.dart';
-import '../utils/app_header.dart';
+// ‼️  ya no es necesario si no usas TransactionModel explícitamente
+// import '../models/transaction_model.dart';
 import '../models/enums.dart';
+import '../utils/app_header.dart';
 
 class TransactionFormView extends StatefulWidget {
   const TransactionFormView({super.key});
@@ -14,13 +16,13 @@ class TransactionFormView extends StatefulWidget {
 }
 
 class _TransactionFormViewState extends State<TransactionFormView> {
-  final _amountCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
-  final _counterpartyCtrl = TextEditingController();
-  final _interestCtrl = TextEditingController();
-  final _frequencyCtrl = TextEditingController();
-  final _numPaymentsCtrl = TextEditingController();
-  final String title = "Cartera";
+  /* (… controllers reservados para futuros formularios …) */
+  final _amountCtrl        = TextEditingController();
+  final _descCtrl          = TextEditingController();
+  final _counterpartyCtrl  = TextEditingController();
+  final _interestCtrl      = TextEditingController();
+  final _frequencyCtrl     = TextEditingController();
+  final _numPaymentsCtrl   = TextEditingController();
 
   @override
   void dispose() {
@@ -37,23 +39,26 @@ class _TransactionFormViewState extends State<TransactionFormView> {
   Widget build(BuildContext context) {
     final controller = Provider.of<TransactionController>(context);
 
-    double efectivo = controller.getTotalByAccountType(AccountType.cash);
-    double tarjeta  = controller.getTotalByAccountType(AccountType.card);
-    double creditos = controller.getTotalByAccountType(AccountType.credit);
-    double deudas   = controller.getTotalByAccountType(AccountType.debt);
+    /* ── Totales por tipo de cuenta ── */
+    final efectivo = controller.getTotalByAccountType(AccountType.cash);
+    final tarjeta  = controller.getTotalByAccountType(AccountType.card);
+    final creditos = controller.getTotalByAccountType(AccountType.credit);
+    final deudas   = controller.getTotalByAccountType(AccountType.debt);
 
-    final List<TransactionModel> upcomingTxs = controller.transactions
-        .where((tx) => tx.date.isAfter(DateTime.now()))
+    /* ── Próximos eventos (ordenados) ── */
+    final upcomingTxs = controller.transactions
+        .where((tx) => tx.dueDate.isAfter(DateTime.now()))
         .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+      ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
-    final double screenWidth   = MediaQuery.of(context).size.width;
-    final bool   isTablet      = screenWidth > 600;
-    final double cardWidth     = isTablet ? 125 : 85;
-    final double cardHeight    = isTablet ? 98 : 72; // sigue recibiéndose aunque ya no se fija
-    final double iconSize      = isTablet ? 32 : 22;
-    final double fontSize      = isTablet ? 14 : 11;
-    final double valueFontSize = isTablet ? 17 : 13;
+    /* ── Adaptativo phone / tablet ── */
+    final screenW       = MediaQuery.of(context).size.width;
+    final isTablet      = screenW > 600;
+    final cardW         = isTablet ? 125.0 :  85.0;
+    final cardH         = isTablet ?  98.0 :  72.0;     // (no se usa dentro)
+    final iconSize      = isTablet ?  32.0 :  22.0;
+    final fontSize      = isTablet ?  14.0 :  11.0;
+    final valueFontSize = isTablet ?  17.0 :  13.0;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -61,62 +66,60 @@ class _TransactionFormViewState extends State<TransactionFormView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            /* ---------- ENCABEZADO ---------- */
             AppHeader(
               showHome: false,
-              onHomeTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/home_view', (route) => false);
-              },
+              onHomeTap: () => Navigator.pushNamedAndRemoveUntil(
+                  context, '/home_view', (_) => false),
             ),
 
-            // ---------- RESUMEN ----------
+            /* ---------- RESUMEN CUENTAS ---------- */
             Padding(
-              padding: const EdgeInsets.only(
-                  left: 7, right: 7, top: 10, bottom: 8),
+              padding: const EdgeInsets.fromLTRB(7, 10, 7, 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _AccountSummaryCard(
                     title: "Efectivo",
-                    icon: Icons.payments_rounded,
+                    icon : Icons.payments_rounded,
                     amount: efectivo,
-                    color: const Color(0xFF250E2C),
-                    cardWidth: cardWidth,
-                    cardHeight: cardHeight,
+                    color : const Color(0xFF250E2C),
+                    cardWidth: cardW,
+                    cardHeight: cardH,
                     iconSize: iconSize,
                     fontSize: fontSize,
                     valueFontSize: valueFontSize,
                   ),
                   _AccountSummaryCard(
                     title: "Tarjeta",
-                    icon: Icons.credit_card_rounded,
+                    icon : Icons.credit_card_rounded,
                     amount: tarjeta,
-                    color: const Color(0xFF837AB6),
-                    cardWidth: cardWidth,
-                    cardHeight: cardHeight,
+                    color : const Color(0xFF837AB6),
+                    cardWidth: cardW,
+                    cardHeight: cardH,
                     iconSize: iconSize,
                     fontSize: fontSize,
                     valueFontSize: valueFontSize,
                   ),
                   _AccountSummaryCard(
                     title: "Créditos",
-                    icon: Icons.account_balance_wallet_rounded,
+                    icon : Icons.account_balance_wallet_rounded,
                     amount: creditos,
-                    color: const Color(0xFFF6A5C0),
-                    cardWidth: cardWidth,
-                    cardHeight: cardHeight,
+                    color : const Color(0xFFF6A5C0),
+                    cardWidth: cardW,
+                    cardHeight: cardH,
                     iconSize: iconSize,
                     fontSize: fontSize,
                     valueFontSize: valueFontSize,
                   ),
                   _AccountSummaryCard(
                     title: "Deudas",
-                    icon: Icons.warning_amber_rounded,
+                    icon : Icons.warning_amber_rounded,
                     amount: deudas,
-                    color: Colors.red.shade300,
+                    color : Colors.red.shade300,
                     isNegative: true,
-                    cardWidth: cardWidth,
-                    cardHeight: cardHeight,
+                    cardWidth: cardW,
+                    cardHeight: cardH,
                     iconSize: iconSize,
                     fontSize: fontSize,
                     valueFontSize: valueFontSize,
@@ -125,77 +128,41 @@ class _TransactionFormViewState extends State<TransactionFormView> {
               ),
             ),
 
-            // ---------- BALANCE ----------
+            /* ---------- BALANCE ---------- */
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
               child: Card(
                 elevation: 1,
-                color: const Color(0xFFF6A5C0).withOpacity(0.18),
+                color: const Color(0xFFF6A5C0).withOpacity(.18),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 22 : 11,
-                      vertical: isTablet ? 13 : 9),
+                      horizontal: isTablet ? 22.0 : 11.0,
+                      vertical  : isTablet ? 13.0 :  9.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Column(
-                        children: [
-                          Text("Ingresos",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSize)),
-                          Text(
-                            '\$${controller.totalIncome.toStringAsFixed(2)}',
-                            style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w700,
-                                fontSize: valueFontSize),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text("Egresos",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSize)),
-                          Text(
-                            '\$${controller.totalExpense.toStringAsFixed(2)}',
-                            style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w700,
-                                fontSize: valueFontSize),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text("Balance",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSize)),
-                          Text(
-                            '\$${(controller.totalIncome - controller.totalExpense).toStringAsFixed(2)}',
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.w700,
-                                fontSize: valueFontSize),
-                          ),
-                        ],
-                      ),
+                      _amountColumn("Ingresos", controller.totalIncome,
+                          fontSize, valueFontSize, Colors.green),
+                      _amountColumn("Egresos", controller.totalExpense,
+                          fontSize, valueFontSize, Colors.red),
+                      _amountColumn(
+                          "Balance",
+                          controller.totalIncome - controller.totalExpense,
+                          fontSize,
+                          valueFontSize,
+                          Colors.blue),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // ---------- PRÓXIMOS PAGOS ----------
+            /* ---------- PRÓXIMOS PAGOS ---------- */
             Padding(
-              padding: const EdgeInsets.only(
-                  top: 12, left: 16, right: 16, bottom: 8),
+              padding:
+                  const EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -222,15 +189,11 @@ class _TransactionFormViewState extends State<TransactionFormView> {
                     child: ListTile(
                       leading: Icon(_iconByTxType(tx.type),
                           color: const Color(0xFF837AB6)),
-                      title: Text(
-                        tx.description ??
-                            tx.type.toString().split('.').last,
-                        style: TextStyle(fontSize: fontSize),
-                      ),
+                      title: Text(tx.concept, style: TextStyle(fontSize: fontSize)),
                       subtitle:
                           Text("Monto: \$${tx.amount.toStringAsFixed(2)}"),
                       trailing:
-                          Text(DateFormat('dd MMM').format(tx.date)),
+                          Text(DateFormat('dd MMM').format(tx.dueDate)),
                     ),
                   );
                 },
@@ -241,19 +204,40 @@ class _TransactionFormViewState extends State<TransactionFormView> {
       ),
     );
   }
+
+  /* helper para las columnas de balance */
+  Widget _amountColumn(String label, double value, double labelFSize,
+      double valueFSize, Color color) {
+    return Column(
+      children: [
+        Text(label,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: labelFSize)),
+        Text(
+          '\$${value.toStringAsFixed(2)}',
+          style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: valueFSize),
+        ),
+      ],
+    );
+  }
 }
 
+/*───────────────────────────────────────────────────────────────*/
+/*          CARD CON RESUMEN DE CADA CUENTA (efectivo, …)        */
+/*───────────────────────────────────────────────────────────────*/
 class _AccountSummaryCard extends StatelessWidget {
-  final String title;
+  final String   title;
   final IconData icon;
-  final double amount;
-  final Color color;
-  final bool isNegative;
-  final double cardWidth;
-  final double cardHeight; // sigue recibiéndose para no romper llamadas
-  final double iconSize;
-  final double fontSize;
-  final double valueFontSize;
+  final double   amount;
+  final Color    color;
+  final bool     isNegative;
+  final double   cardWidth;
+  final double   cardHeight; // (no se usa, pero se mantiene por compat.)
+  final double   iconSize;
+  final double   fontSize;
+  final double   valueFontSize;
 
   const _AccountSummaryCard({
     required this.title,
@@ -275,11 +259,10 @@ class _AccountSummaryCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SizedBox(
-        width: cardWidth, // altura dinámica → sin overflow vertical
+        width: cardWidth,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: color, size: iconSize),
@@ -305,6 +288,9 @@ class _AccountSummaryCard extends StatelessWidget {
   }
 }
 
+/*───────────────────────────────────────────────────────────────*/
+/*              Ícono sugerido según el tipo de transacción      */
+/*───────────────────────────────────────────────────────────────*/
 IconData _iconByTxType(TransactionType type) {
   switch (type) {
     case TransactionType.income:
@@ -319,8 +305,7 @@ IconData _iconByTxType(TransactionType type) {
       return Icons.call_received_rounded;
     case TransactionType.payment:
       return Icons.request_quote_rounded;
-
     case TransactionType.debt:
-    return Icons.account_balance_wallet_rounded;
+      return Icons.account_balance_wallet_rounded;
   }
 }

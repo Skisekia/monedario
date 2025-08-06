@@ -1,29 +1,34 @@
-// Importando paquetes
+// 📄 lib/main.dart
+// ──────────────────────────────────────────────────────────────
+// Paquetes
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:monedario/views/add_debt.dart';
+import 'package:monedario/views/add_payment.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 
-// Importando las vistas 
+// Vistas
 import 'views/splash_screen.dart';
 import 'views/welcome.dart';
-import 'package:monedario/views/login.dart' as login;
-import 'package:monedario/views/register.dart' as register;
-import 'package:monedario/views/forgot_password_view.dart' as forgot_password;
-import 'package:monedario/views/edit_profile_view.dart';
+import 'views/login.dart'       as login;
+import 'views/register.dart'    as register;
+import 'views/forgot_password_view.dart' as forgot_password;
+import 'views/edit_profile_view.dart';
 import 'views/dashboard.dart';
 import 'views/settings_view.dart';
-import 'views/payment_view.dart';
-import 'views/debt_view.dart';
+import 'views/transaction_form_view.dart';
 
-// Importando controladores
+// Controladores
 import 'controllers/auth_controller.dart';
 import 'controllers/transaction_controller.dart';
-import 'ui/theme.dart';
 import 'controllers/debt_controller.dart';
 
-void main() async {
+// Tema
+import 'ui/theme.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -34,7 +39,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-   runApp(
+  runApp(
     MultiProvider(
       providers: [
         Provider<AuthController>(create: (_) => AuthController()),
@@ -59,18 +64,24 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
-      initialRoute: '/welcome', // desde login redirige a /home_view
+
+      // ------------- Rutas -------------
+      // *Ya no apuntamos a los formularios modales antiguos*
+      initialRoute: '/welcome',
       routes: {
-        '/splash': (ctx) => const SplashScreen(),
-        '/welcome': (ctx) => const WelcomeView(),
-        '/login': (ctx) => const login.LoginView(),
-        '/register': (ctx) => const register.RegisterView(),
-        '/forgot_password': (ctx) => const forgot_password.ForgotPasswordView(),
-        '/dashboard': (ctx) => const Dashboard(),
-        '/settings_view': (ctx) => const SettingsView(),
-        '/edit_profile_view': (ctx) => const EditProfileView(),
-        '/debt_view': (_) => const DebtView(),
-        '/payment_view': (_) => const PaymentView(),
+        '/splash'            : (_) => const SplashScreen(),
+        '/welcome'           : (_) => const WelcomeView(),
+        '/login'             : (_) => const login.LoginView(),
+        '/register'          : (_) => const register.RegisterView(),
+        '/forgot_password'   : (_) => const forgot_password.ForgotPasswordView(),
+        '/dashboard'         : (_) => const Dashboard(),
+        '/settings_view'     : (_) => const SettingsView(),
+        '/edit_profile_view' : (_) => const EditProfileView(),
+        '/transaction_form_view' : (_) => const TransactionFormView(),
+
+        // ← pantallas lista + FAB
+        '/add_debt'    : (_) => const AddDebtView(),
+        '/add_payments' : (_) => const AddPaymentView(),
       },
     );
   }

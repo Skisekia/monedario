@@ -1,10 +1,13 @@
+// 📄 lib/utils/modals_nav.dart
 import 'package:flutter/material.dart';
 
-/// BOTÓN REUTILIZABLE
+/*───────────────────────────────────────────────────────────────*/
+/*                          BOTÓN OPCIÓN                         */
+/*───────────────────────────────────────────────────────────────*/
 class _OptionButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
+  final IconData    icon;
+  final Color       color;
+  final String      label;
   final VoidCallback onTap;
 
   const _OptionButton({
@@ -32,14 +35,15 @@ class _OptionButton extends StatelessWidget {
         ),
         const SizedBox(height: 7),
         Text(label,
-            style:
-                const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
       ],
     );
   }
 }
 
-/// PANTALLA DE PLACEHOLDER  
+/*───────────────────────────────────────────────────────────────*/
+/*                         PLACEHOLDER                           */
+/*───────────────────────────────────────────────────────────────*/
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
@@ -57,8 +61,6 @@ class _PlaceholderScreen extends StatelessWidget {
       );
 }
 
-/// Función auxiliar para empujar un placeholder.
-/// `Navigator.of(context).pushNamed('/gasto');`
 void _pushPlaceholder(BuildContext context, String title) {
   Navigator.of(context).pop(); // cierra el diálogo
   Navigator.of(context).push(
@@ -66,101 +68,90 @@ void _pushPlaceholder(BuildContext context, String title) {
   );
 }
 
-/// MODALES PÚBLICOS
-//esta función se usa en el Dashboard para mostrar las opciones de deudas
+/*───────────────────────────────────────────────────────────────*/
+/*                    MODALES PÚBLICOS                           */
+/*───────────────────────────────────────────────────────────────*/
 void showTransactionActionsModal(BuildContext context) =>
     _showCentered(context, _transactionOptions(context));
 
-/// esta función se usa en el Dashboard para mostrar las opciones de balance
 void showBalanceActionsModal(BuildContext context) =>
     _showCentered(context, _balanceOptions(context));
-//esta función se usa en el Dashboard para mostrar las opciones de amigos
+
 void showFriendsActionsModal(BuildContext context) =>
     _showCentered(context, _friendsOptions(context));
 
-
-// IMPLEMENTACIÓN COMÚN
-void _showCentered(
-    BuildContext context, List<List<_OptionButton>> optionRows) {
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (_) =>
-        _CenteredDialog(title: '¿Qué deseas hacer?', optionRows: optionRows),
-  );
-}
-
-
-/// OPCIONES POR MODAL  cada botón usa _pushPlaceholder
-/// cada función devuelve una lista de listas de botones (_OptionButton)
-List<List<_OptionButton>> _transactionOptions(BuildContext context) => [
+/*───────────────────────────────────────────────────────────────*/
+/*                     LISTAS DE OPCIONES                        */
+/*───────────────────────────────────────────────────────────────*/
+List<List<_OptionButton>> _transactionOptions(BuildContext ctx) => [
       [
         _OptionButton(
           icon: Icons.add_shopping_cart_rounded,
           color: Colors.blueAccent,
           label: 'Gasto',
-          onTap: () => _pushPlaceholder(context, 'Gasto'),
+          onTap: () => _pushPlaceholder(ctx, 'Gasto'),
         ),
         _OptionButton(
           icon: Icons.attach_money_rounded,
           color: Colors.green,
           label: 'Ingreso',
-          onTap: () => _pushPlaceholder(context, 'Ingreso'),
+          onTap: () => _pushPlaceholder(ctx, 'Ingreso'),
         ),
         _OptionButton(
           icon: Icons.account_balance_wallet_rounded,
           color: Colors.deepPurple,
           label: 'Transacción',
-          onTap: () => _pushPlaceholder(context, 'Transacción'),
+          onTap: () => _pushPlaceholder(ctx, 'Transacción'),
         ),
       ],
       [
         _OptionButton(
           icon: Icons.payments_rounded,
           color: Colors.teal,
-          label: 'Pago',
+          label: 'Pagos',
           onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/payment_view');
+            Navigator.of(ctx).pop();
+            Navigator.of(ctx).pushNamed('/add_payment'); // ← lista de pagos
           },
         ),
         _OptionButton(
           icon: Icons.handshake_rounded,
           color: Colors.orange,
           label: 'Préstamo',
-          onTap: () => _pushPlaceholder(context, 'Préstamo'),
+          onTap: () => _pushPlaceholder(ctx, 'Préstamo'),
         ),
         _OptionButton(
           icon: Icons.account_balance_rounded,
           color: Colors.pink,
-          label: 'Deuda',
+          label: 'Deudas',
           onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/debt_view');
+            Navigator.of(ctx).pop();
+            Navigator.of(ctx).pushNamed('/add_debt');   // ← lista de deudas
           },
         ),
       ],
     ];
 
-List<List<_OptionButton>> _balanceOptions(BuildContext context) => [
+/*—— balance ——*/
+List<List<_OptionButton>> _balanceOptions(BuildContext ctx) => [
       [
         _OptionButton(
           icon: Icons.attach_money_rounded,
           color: Colors.green,
           label: 'Añadir ingreso',
-          onTap: () => _pushPlaceholder(context, 'Añadir ingreso'),
+          onTap: () => _pushPlaceholder(ctx, 'Añadir ingreso'),
         ),
         _OptionButton(
           icon: Icons.add_shopping_cart_rounded,
           color: Colors.blueAccent,
           label: 'Añadir gasto',
-          onTap: () => _pushPlaceholder(context, 'Añadir gasto'),
+          onTap: () => _pushPlaceholder(ctx, 'Añadir gasto'),
         ),
         _OptionButton(
           icon: Icons.credit_card_rounded,
           color: Colors.deepPurple,
           label: 'Añadir tarjeta',
-          onTap: () => _pushPlaceholder(context, 'Añadir tarjeta'),
+          onTap: () => _pushPlaceholder(ctx, 'Añadir tarjeta'),
         ),
       ],
       [
@@ -168,42 +159,43 @@ List<List<_OptionButton>> _balanceOptions(BuildContext context) => [
           icon: Icons.analytics_rounded,
           color: Colors.teal,
           label: 'Ver gráficas',
-          onTap: () => _pushPlaceholder(context, 'Ver gráficas'),
+          onTap: () => _pushPlaceholder(ctx, 'Ver gráficas'),
         ),
         _OptionButton(
           icon: Icons.calendar_month_rounded,
           color: Colors.orange,
           label: 'Fechas de pago',
-          onTap: () => _pushPlaceholder(context, 'Fechas de pago'),
+          onTap: () => _pushPlaceholder(ctx, 'Fechas de pago'),
         ),
         _OptionButton(
           icon: Icons.pie_chart_rounded,
           color: Colors.pink,
           label: 'Estadísticas',
-          onTap: () => _pushPlaceholder(context, 'Estadísticas'),
+          onTap: () => _pushPlaceholder(ctx, 'Estadísticas'),
         ),
       ],
     ];
 
-List<List<_OptionButton>> _friendsOptions(BuildContext context) => [
+/*—— amigos ——*/
+List<List<_OptionButton>> _friendsOptions(BuildContext ctx) => [
       [
         _OptionButton(
           icon: Icons.person_add_rounded,
           color: Colors.green,
           label: 'Agregar amigo',
-          onTap: () => _pushPlaceholder(context, 'Agregar amigo'),
+          onTap: () => _pushPlaceholder(ctx, 'Agregar amigo'),
         ),
         _OptionButton(
           icon: Icons.group_rounded,
           color: Colors.blueAccent,
           label: 'Ver grupos',
-          onTap: () => _pushPlaceholder(context, 'Ver grupos'),
+          onTap: () => _pushPlaceholder(ctx, 'Ver grupos'),
         ),
         _OptionButton(
           icon: Icons.handshake_rounded,
           color: Colors.deepPurple,
           label: 'Préstamo/Deuda',
-          onTap: () => _pushPlaceholder(context, 'Préstamo/Deuda'),
+          onTap: () => _pushPlaceholder(ctx, 'Préstamo/Deuda'),
         ),
       ],
       [
@@ -211,28 +203,41 @@ List<List<_OptionButton>> _friendsOptions(BuildContext context) => [
           icon: Icons.delete_rounded,
           color: Colors.pink,
           label: 'Eliminar amigo',
-          onTap: () => _pushPlaceholder(context, 'Eliminar amigo'),
+          onTap: () => _pushPlaceholder(ctx, 'Eliminar amigo'),
         ),
         _OptionButton(
           icon: Icons.link_rounded,
           color: Colors.orange,
           label: 'Vincular amigo',
-          onTap: () => _pushPlaceholder(context, 'Vincular amigo'),
+          onTap: () => _pushPlaceholder(ctx, 'Vincular amigo'),
         ),
         _OptionButton(
           icon: Icons.send_rounded,
           color: Colors.teal,
           label: 'Invitar amigo',
-          onTap: () => _pushPlaceholder(context, 'Invitar amigo'),
+          onTap: () => _pushPlaceholder(ctx, 'Invitar amigo'),
         ),
       ],
     ];
 
-/// DIÁLOGO CENTRADO
+/*───────────────────────────────────────────────────────────────*/
+/*                      DIÁLOGO CENTRADO                         */
+/*───────────────────────────────────────────────────────────────*/
+void _showCentered(
+    BuildContext context, List<List<_OptionButton>> optionRows) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => _CenteredDialog(
+      title: '¿Qué deseas hacer?',
+      optionRows: optionRows,
+    ),
+  );
+}
 
 class _CenteredDialog extends StatelessWidget {
-  final String title;
-  final List<List<Widget>> optionRows;
+  final String                    title;
+  final List<List<_OptionButton>> optionRows;
 
   const _CenteredDialog({
     required this.title,
@@ -254,8 +259,7 @@ class _CenteredDialog extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -272,14 +276,12 @@ class _CenteredDialog extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF250E2C),
-                      ),
-                    ),
+                    Text(title,
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF250E2C),
+                        )),
                     const SizedBox(height: 26),
                     ...optionRows.map(
                       (row) => Padding(
