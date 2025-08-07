@@ -1,15 +1,16 @@
-// 📄 lib/utils/modals_nav.dart
 import 'package:flutter/material.dart';
+import '../models/transaction_model.dart';
 
-/*───────────────────────────────────────────────────────────────*/
-/*                          BOTÓN OPCIÓN                         */
-/*───────────────────────────────────────────────────────────────*/
+// Widget que representa un botón de opción en el modal
+// Este widget se usa para mostrar diferentes acciones que el usuario puede realizar
 class _OptionButton extends StatelessWidget {
-  final IconData    icon;
-  final Color       color;
-  final String      label;
+  final IconData icon;
+  final Color color;
+  final String label;
   final VoidCallback onTap;
 
+  // Constructor del botón de opción
+  // Recibe el ícono, color, etiqueta y acción a realizar al pulsar
   const _OptionButton({
     required this.icon,
     required this.color,
@@ -17,6 +18,8 @@ class _OptionButton extends StatelessWidget {
     required this.onTap,
   });
 
+  // Botón de opción para el modal
+  // Este widget representa un botón con un ícono, color y etiqueta
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -34,20 +37,19 @@ class _OptionButton extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 7),
-        Text(label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
       ],
     );
   }
 }
 
-/*───────────────────────────────────────────────────────────────*/
-/*                         PLACEHOLDER                           */
-/*───────────────────────────────────────────────────────────────*/
+// Pantalla de marcador de posición para las acciones
+// Esta pantalla se usa para mostrar un mensaje de que la vista está en construcción
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
 
+// Esta pantalla es un marcador de posición para las acciones
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(title)),
@@ -60,31 +62,27 @@ class _PlaceholderScreen extends StatelessWidget {
         ),
       );
 }
-
+// Navega a una pantalla de marcador de posición con el título dado
 void _pushPlaceholder(BuildContext context, String title) {
-  Navigator.of(context).pop(); // cierra el diálogo
+  Navigator.of(context).pop();
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => _PlaceholderScreen(title: title)),
   );
 }
-
-/*───────────────────────────────────────────────────────────────*/
-/*                    MODALES PÚBLICOS                           */
-/*───────────────────────────────────────────────────────────────*/
-void showTransactionActionsModal(BuildContext context) =>
-    _showCentered(context, _transactionOptions(context));
-
+// Muestra el modal de acciones de transacciones
+void showTransactionActionsModal(BuildContext context, [TransactionModel? debtModel]) =>
+    _showCentered(context, _transactionOptions(context, debtModel));
+// Muestra el modal de acciones de balance
 void showBalanceActionsModal(BuildContext context) =>
     _showCentered(context, _balanceOptions(context));
-
+// Muestra el modal de acciones de amigos
 void showFriendsActionsModal(BuildContext context) =>
     _showCentered(context, _friendsOptions(context));
 
-/*───────────────────────────────────────────────────────────────*/
-/*                     LISTAS DE OPCIONES                        */
-/*───────────────────────────────────────────────────────────────*/
-List<List<_OptionButton>> _transactionOptions(BuildContext ctx) => [
+// Genera las opciones para el modal de transacciones
+List<List<_OptionButton>> _transactionOptions(BuildContext ctx, TransactionModel? debtModel) => [
       [
+        // Botones para gastos, ingresos y transacciones
         _OptionButton(
           icon: Icons.add_shopping_cart_rounded,
           color: Colors.blueAccent,
@@ -105,13 +103,14 @@ List<List<_OptionButton>> _transactionOptions(BuildContext ctx) => [
         ),
       ],
       [
-        _OptionButton(
-          icon: Icons.payments_rounded,
+        // Botones para pagos, préstamos y deudas
+         _OptionButton(
+          icon: Icons.handshake_rounded,
           color: Colors.teal,
-          label: 'Pagos',
+          label: 'Pago',
           onTap: () {
             Navigator.of(ctx).pop();
-            Navigator.of(ctx).pushNamed('/add_payment'); // ← lista de pagos
+            Navigator.of(ctx).pushNamed('/add_payment');
           },
         ),
         _OptionButton(
@@ -126,15 +125,17 @@ List<List<_OptionButton>> _transactionOptions(BuildContext ctx) => [
           label: 'Deudas',
           onTap: () {
             Navigator.of(ctx).pop();
-            Navigator.of(ctx).pushNamed('/add_debt');   // ← lista de deudas
+            Navigator.of(ctx).pushNamed('/add_debt');
           },
         ),
       ],
     ];
 
-/*—— balance ——*/
+// Genera las opciones para el modal de balance
+
 List<List<_OptionButton>> _balanceOptions(BuildContext ctx) => [
       [
+        // Botones para añadir ingresos, gastos y tarjetas
         _OptionButton(
           icon: Icons.attach_money_rounded,
           color: Colors.green,
@@ -155,6 +156,7 @@ List<List<_OptionButton>> _balanceOptions(BuildContext ctx) => [
         ),
       ],
       [
+        // Botones para ver gráficas, fechas de pago y estadísticas
         _OptionButton(
           icon: Icons.analytics_rounded,
           color: Colors.teal,
@@ -176,9 +178,10 @@ List<List<_OptionButton>> _balanceOptions(BuildContext ctx) => [
       ],
     ];
 
-/*—— amigos ——*/
+// Genera las opciones para el modal de amigos
 List<List<_OptionButton>> _friendsOptions(BuildContext ctx) => [
       [
+        // Botones para agregar amigo, ver grupos y préstamos/deudas
         _OptionButton(
           icon: Icons.person_add_rounded,
           color: Colors.green,
@@ -199,6 +202,7 @@ List<List<_OptionButton>> _friendsOptions(BuildContext ctx) => [
         ),
       ],
       [
+        // Botones para eliminar amigo, vincular amigo e invitar amigo
         _OptionButton(
           icon: Icons.delete_rounded,
           color: Colors.pink,
@@ -220,11 +224,8 @@ List<List<_OptionButton>> _friendsOptions(BuildContext ctx) => [
       ],
     ];
 
-/*───────────────────────────────────────────────────────────────*/
-/*                      DIÁLOGO CENTRADO                         */
-/*───────────────────────────────────────────────────────────────*/
-void _showCentered(
-    BuildContext context, List<List<_OptionButton>> optionRows) {
+// Muestra un diálogo centrado con las opciones dadas
+void _showCentered(BuildContext context, List<List<_OptionButton>> optionRows) {
   showDialog(
     context: context,
     barrierDismissible: true,
@@ -235,20 +236,25 @@ void _showCentered(
   );
 }
 
+// Diálogo centrado que muestra las opciones de acción
+// Este widget se usa para mostrar un diálogo con varias opciones de acción
 class _CenteredDialog extends StatelessWidget {
-  final String                    title;
+  final String title;
   final List<List<_OptionButton>> optionRows;
 
+// Constructor del diálogo centrado
   const _CenteredDialog({
     required this.title,
     required this.optionRows,
   });
 
+// Construye el diálogo centrado con un título y filas de opciones
   @override
   Widget build(BuildContext context) {
     final double maxDialogWidth =
         MediaQuery.of(context).size.width > 480 ? 440 : double.infinity;
 
+    // Retorna un diálogo con un diseño centrado y opciones
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       backgroundColor: Colors.transparent,

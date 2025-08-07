@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // ✅ Necesario para FirebaseAuthException
+import 'package:firebase_auth/firebase_auth.dart'; 
 import '../../controllers/auth_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
@@ -13,13 +13,17 @@ class EditProfileView extends StatefulWidget {
   State<EditProfileView> createState() => _EditProfileViewState();
 }
 
+// Esta vista permite al usuario editar su perfil, incluyendo nombre y contraseña.
 class _EditProfileViewState extends State<EditProfileView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Muestra el avatar del perfil basado en el género del usuario.
+  // Si el género es masculino, muestra un avatar masculino, si es femenino, muestra uno
   bool _saving = false;
 
+// Muestra el avatar del perfil basado en el género del usuario.
   Widget buildProfileAvatar(String? gender) {
     final asset = getProfileIconAssetPath(gender);
     if (asset.endsWith('.json')) {
@@ -28,6 +32,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     return CircleAvatar(radius: 150, backgroundImage: AssetImage(asset));
   }
 
+  // Guarda los cambios realizados en el perfil del usuario.
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -43,32 +48,36 @@ class _EditProfileViewState extends State<EditProfileView> {
             : null,
       );
 
-      if (!mounted) return; // ✅ Evita usar context si el widget ya no está
+      // Si se actualiza correctamente, muestra un mensaje de éxito
+      // y redirige al usuario a la vista de configuración.
+      if (!mounted) return; 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("✅ Cambios guardados correctamente"),
+          content: const Text(" Cambios guardados correctamente"),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
+      // Redirige al usuario a la vista de configuración
       Navigator.pushNamed(context, '/settings_view'); // Redirige a la vista de configuración
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("❌ ${e.message}"),
+          content: Text(" ${e.message}"),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
+        // Si ocurre un error, muestra un mensaje de error
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("❌ Error inesperado: $e"),
+          content: Text(" Error inesperado: $e"),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -79,6 +88,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
   }
 
+  // Construye la vista del perfil editable.
+  // Muestra el nombre de usuario, la foto de perfil y un formulario para editar el
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthController>(context, listen: false);
@@ -98,7 +109,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // 🔙 Botón atrás
+                  //  Botón atrás
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
@@ -107,14 +118,14 @@ class _EditProfileViewState extends State<EditProfileView> {
                     ),
                   ),
 
-                  // 📸 Avatar
+                  //  Avatar
                   buildProfileAvatar(user.gender),
                   const SizedBox(height: 8),
                   Text(user.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   Text(user.email, style: const TextStyle(color: Colors.grey)),
                   const SizedBox(height: 20),
 
-                  // 📝 Formulario
+                  //  Formulario
                   Form(
                     key: _formKey,
                     child: Column(
@@ -154,7 +165,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Botón guardar
+                        // Botón guardar cambios
                         ElevatedButton.icon(
                           onPressed: _saving ? null : _saveChanges,
                           icon: _saving

@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../controllers/register_controller.dart';
 
+// Vista de registro de usuario
+// Permite crear una nueva cuenta con nombre, email y contraseña
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
+// Ruta para acceder a esta vista
   @override
   State<RegisterView> createState() => _RegisterViewState();
 }
 
+// Estado de la vista de registro
+// Maneja la lógica de registro y la UI
 class _RegisterViewState extends State<RegisterView> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -17,6 +22,8 @@ class _RegisterViewState extends State<RegisterView> {
   bool _loading = false;
   late RegisterController _controller;
 
+// Inicializa el controller y los controladores de texto
+  
   @override
   void initState() {
     super.initState();
@@ -24,7 +31,7 @@ class _RegisterViewState extends State<RegisterView> {
       nameCtrl: _nameCtrl,
       emailCtrl: _emailCtrl,
       passCtrl: _passCtrl,
-      // Si tu controller ya no requiere género, elimínalo de ahí también
+      // Callback para manejar el registro exitoso
       onSuccess: () {
         if (mounted) {
           setState(() => _loading = false);
@@ -33,12 +40,12 @@ class _RegisterViewState extends State<RegisterView> {
       },
       onError: (msg) {
         if (mounted) setState(() => _loading = false);
-        // Puedes usar showErrorNotification(context, msg); si ya lo tienes centralizado
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       },
     );
   }
 
+// Limpia los controladores de texto al destruir el widget
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -47,6 +54,8 @@ class _RegisterViewState extends State<RegisterView> {
     super.dispose();
   }
 
+// Construye la UI de registro
+  // Incluye campos de texto, botones y animación
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -54,6 +63,7 @@ class _RegisterViewState extends State<RegisterView> {
     final isTablet = screenWidth > 600;
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
+// Retorna la vista con el fondo, mensaje de bienvenida y formulario de registro
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
@@ -75,7 +85,7 @@ class _RegisterViewState extends State<RegisterView> {
               child: Column(
                 children: [
                   const SizedBox(height: 50),
-                  // Mensaje de bienvenida
+                  // Mensaje de bienvenida 
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 42),
                     child: Align(
@@ -110,7 +120,7 @@ class _RegisterViewState extends State<RegisterView> {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        // Card blanco
+                        // Card blanco con formulario de registro
                         Container(
                           margin: EdgeInsets.only(top: cardTopMargin),
                           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 2),
@@ -167,6 +177,7 @@ class _RegisterViewState extends State<RegisterView> {
                                 ],
                               ),
                               const SizedBox(height: 12),
+                              // Botones de redes sociales
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -236,10 +247,8 @@ class _RegisterViewState extends State<RegisterView> {
       ),
     );
   }
-
-  // ===============================
-  //     Widgets Auxiliares
-  // ===============================
+  // Construye un campo de texto con icono y validación
+  // Permite mostrar/ocultar contraseña
   Widget _buildInput(TextEditingController c, String hint, IconData icon, bool obscure,
       {bool showPassword = false, VoidCallback? togglePassword}) {
     return TextField(
@@ -270,6 +279,8 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+// Construye el botón de registro
+  // Muestra un indicador de carga mientras se registra
   Widget _buildRegisterButton() {
     return SizedBox(
       width: double.infinity,
@@ -317,6 +328,8 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+// Construye un botón social con icono
+  // Permite iniciar sesión con Facebook o Google
   Widget _buildSocialBtn(String asset, VoidCallback onTap) {
     return Ink(
       decoration: BoxDecoration(

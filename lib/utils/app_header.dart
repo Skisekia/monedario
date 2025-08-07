@@ -1,4 +1,3 @@
-// 📄 lib/utils/app_header.dart
 import 'package:flutter/material.dart';
 
 /// Header corporativo reutilizable
@@ -14,6 +13,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showBack;
   final bool showCalendar;
   final bool showSearch;
+  final String? title;
+  final Widget? customTrailing;
 
   const AppHeader({
     super.key,
@@ -27,6 +28,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.showBack     = false,
     this.showCalendar = false,
     this.showSearch   = false,
+    this.title,
+    this.customTrailing,
   });
 
   @override
@@ -54,30 +57,42 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 onPressed: onHomeTap,
                 tooltip: 'Inicio',
               ),
-
-            const Spacer(),
-
-            if (showSearch)
-              IconButton(
-                icon: const Icon(Icons.search_rounded,
-                    color: Color(0xFF837AB6)),
-                onPressed: onSearchTap,
-                tooltip: 'Buscar',
-              ),
-            if (showCalendar)
-              IconButton(
-                icon: const Icon(Icons.calendar_today_rounded,
-                    color: Color(0xFF837AB6)),
-                onPressed: onCalendarTap,
-                tooltip: 'Calendario',
-              ),
-            if (showNotif)
-              IconButton(
-                icon: const Icon(Icons.notifications_rounded,
-                    color: Color(0xFF837AB6)),
-                onPressed: onNotifTap,
-                tooltip: 'Notificaciones',
-              ),
+            if (title != null)
+              Expanded(
+                child: Text(
+                  title!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color(0xFF23223B),
+                  ),
+                ),
+              )
+            else
+              const Spacer(),
+            if (customTrailing != null)
+              customTrailing!
+            else ...[
+              if (showSearch)
+                IconButton(
+                  icon: const Icon(Icons.search_rounded, color: Color(0xFF837AB6)),
+                  onPressed: onSearchTap,
+                  tooltip: 'Buscar',
+                ),
+              if (showCalendar)
+                IconButton(
+                  icon: const Icon(Icons.calendar_today_rounded, color: Color(0xFF837AB6)),
+                  onPressed: onCalendarTap,
+                  tooltip: 'Calendario',
+                ),
+              if (showNotif)
+                IconButton(
+                  icon: const Icon(Icons.notifications_rounded, color: Color(0xFF837AB6)),
+                  onPressed: onNotifTap,
+                  tooltip: 'Notificaciones',
+                ),
+            ],
           ],
         ),
       ),

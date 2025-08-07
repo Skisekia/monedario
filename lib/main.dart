@@ -1,11 +1,11 @@
-// 📄 lib/main.dart
+// estas son que se importan en el archivo main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 
-// Vistas
+// Vistas 
 import 'views/splash_screen.dart';
 import 'views/welcome.dart';
 import 'views/login.dart'       as login;
@@ -23,22 +23,28 @@ import 'controllers/auth_controller.dart';
 import 'controllers/transaction_controller.dart';
 import 'controllers/debt_controller.dart';
 
-// Modelos
-//import 'models/transaction_model.dart';  // Asegúrate que esta ruta esté bien
+
 // Tema
 import 'ui/theme.dart';
 
+// Controladores 
 Future<void> main() async {
+  // Inicializar Firebase y establecer la orientación de la pantalla
+  // Asegurarse de que los widgets de Flutter estén inicializados antes de usar Firebase
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+// Establecer la orientación de la pantalla a vertical
+  // Esto es útil para aplicaciones que solo deben funcionar en modo vertical
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // Ejecutar la aplicación con MultiProvider para manejar el estado
+  // MultiProvider permite inyectar múltiples proveedores en el árbol de widgets
   runApp(
     MultiProvider(
       providers: [
@@ -51,9 +57,14 @@ Future<void> main() async {
   );
 }
 
+// Clase principal de la aplicación
+// Esta clase es el punto de entrada de la aplicación 
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Método build que construye la interfaz de usuario de la aplicación
+  // Utiliza MaterialApp para definir la estructura y el tema de la aplicación
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -64,6 +75,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
+      // Definir las rutas de la aplicación
+      // Las rutas permiten navegar entre diferentes vistas de la aplicación
       initialRoute: '/welcome',
       routes: {
         '/splash'            : (_) => const SplashScreen(),

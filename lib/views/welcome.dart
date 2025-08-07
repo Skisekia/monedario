@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart'; // 👈 Import para usar Lottie
+import 'package:lottie/lottie.dart'; //  Import para usar Lottie
 
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
 
+// Pantalla de bienvenida
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -11,13 +12,14 @@ class WelcomeView extends StatelessWidget {
     final h = size.height;
     final isTablet = w > 600;
 
-    // 🎨 Gradiente basado en la paleta enviada
+    //  Gradiente de colores
     const gradientColors = [
       Color(0xFF250E2C), // Morado oscuro
       Color(0xFF837AB6), // Lavanda
       Color(0xFFF6A5C0), // Rosa suave
     ];
-
+    
+    //  Contenido centrado con un gradiente de fondo
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -35,7 +37,7 @@ class WelcomeView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // 🎬 Animación Lottie en lugar de imagen
+                    //  Animación Lottie  
                     SizedBox(
                       height: isTablet ? h * 0.48 : h * 0.40,
                       child: Lottie.asset(

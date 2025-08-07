@@ -3,67 +3,73 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart' show rootBundle;
+
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
 import '../../utils/modals_view.dart';
-// import 'package:open_file/open_file.dart'; // abrir el PDF tras descargarlo
 
-// Solicitar permisos de almacenamiento
-  Future<bool> requestStoragePermission() async {
-    if (Platform.isAndroid) {
-      var status = await Permission.manageExternalStorage.request();
-      return status.isGranted;
-    }
-    return true; // iOS no necesita esto
+Future<bool> requestStoragePermission() async {
+  if (Platform.isAndroid) {
+    var status = await Permission.manageExternalStorage.request();
+    return status.isGranted;
   }
+  return true;
+}
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
-
-  
 }
 
 class _SettingsViewState extends State<SettingsView> {
   File? _profileImage;
+  bool _uploading = false;
+
   final picker = ImagePicker();
   bool fbConnected = false;
   bool googleConnected = false;
 
-  Future<void> _pickImage() async {
-    showModalBottomSheet(
+  // ==== FUNCIONES PARA LA FOTO DE PERFIL ====
+
+  Future<void> _showImagePickerDialog() async {
+    showDialog(
       context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
+      builder: (context) => AlertDialog(
+        title: const Text('Seleccionar foto de perfil'),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera),
-              title: const Text('Tomar foto'),
-              onTap: () async {
-                final pickedFile = await picker.pickImage(source: ImageSource.camera);
+            IconButton(
+              icon: const Icon(Icons.photo_camera, size: 34, color: Colors.purple),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 75);
                 if (pickedFile != null) {
-                  setState(() => _profileImage = File(pickedFile.path));
+                  await _saveProfileImage(File(pickedFile.path));
                 }
-                Navigator.pop(context);
               },
+              tooltip: 'Tomar foto',
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Seleccionar de galería'),
-              onTap: () async {
-                final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+            IconButton(
+              icon: const Icon(Icons.photo_library, size: 34, color: Colors.purple),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
                 if (pickedFile != null) {
-                  setState(() => _profileImage = File(pickedFile.path));
+                  await _saveProfileImage(File(pickedFile.path));
                 }
-                Navigator.pop(context);
               },
+              tooltip: 'Seleccionar de galería',
             ),
           ],
         ),
@@ -71,10 +77,59 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  /// FUNCIÓN PARA DESCARGAR PDF DESDE ASSETS
+  Future<void> _saveProfileImage(File image) async {
+    setState(() => _uploading = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("No hay usuario autenticado.");
+
+      // Sube la imagen a Storage
+      final ref = FirebaseStorage.instance.ref().child('profile_images/${user.uid}.jpg');
+      await ref.putFile(image);
+
+      // Obtiene la URL de descarga
+      final imageUrl = await ref.getDownloadURL();
+
+      // Actualiza Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'photoUrl': imageUrl});
+
+      setState(() {
+        _profileImage = image;
+        _uploading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada')),
+        );
+      }
+    } catch (e) {
+      setState(() => _uploading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar la foto: $e')),
+        );
+      }
+    }
+  }
+
+  Widget buildProfileAvatar(String? gender, String? photoUrl) {
+    if (_profileImage != null) {
+      return CircleAvatar(radius: 90, backgroundImage: FileImage(_profileImage!));
+    }
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return CircleAvatar(radius: 90, backgroundImage: NetworkImage(photoUrl));
+    }
+    final asset = getProfileIconAssetPath(gender);
+    if (asset.endsWith('.json')) {
+      return Lottie.asset(asset, width: 180, height: 180);
+    }
+    return CircleAvatar(radius: 90, backgroundImage: AssetImage(asset));
+  }
+
+  /// FUNCIÓN PARA DESCARGAR PDF DESDE ASSETS (igual que la tuya)
   Future<void> _downloadManualPdf(BuildContext context) async {
     try {
-      // Solicita permisos de almacenamiento si es Android
       if (Platform.isAndroid) {
         bool granted = await requestStoragePermission();
         if (!granted) {
@@ -86,10 +141,7 @@ class _SettingsViewState extends State<SettingsView> {
           return;
         }
       }
-      // 2. Lee el PDF de assets
       final byteData = await rootBundle.load('assets/prueba.pdf');
-
-      // 3. Obtiene la carpeta de descargas
       Directory? directory;
       if (Platform.isAndroid) {
         directory = Directory('/storage/emulated/0/Download');
@@ -97,21 +149,13 @@ class _SettingsViewState extends State<SettingsView> {
         directory = await getApplicationDocumentsDirectory();
       }
       if (directory == null) throw Exception('No se pudo acceder a la carpeta de descargas');
-
-      // 4. Crea el archivo en esa carpeta
       final file = File('${directory.path}/prueba.pdf');
       await file.writeAsBytes(byteData.buffer.asUint8List());
-
-      // 5. Notificación de éxito
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('PDF descargado en ${file.path}')),
         );
       }
-
-      // 6. (Opcional) Abre el archivo PDF automáticamente:
-      // await OpenFile.open(file.path);
-
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,17 +163,6 @@ class _SettingsViewState extends State<SettingsView> {
         );
       }
     }
-  }
-
-  Widget buildProfileAvatar(String? gender) {
-    final asset = getProfileIconAssetPath(gender);
-    if (_profileImage != null) {
-      return CircleAvatar(radius: 90, backgroundImage: FileImage(_profileImage!));
-    }
-    if (asset.endsWith('.json')) {
-      return Lottie.asset(asset, width: 180, height: 180);
-    }
-    return CircleAvatar(radius: 90, backgroundImage: AssetImage(asset));
   }
 
   @override
@@ -180,17 +213,28 @@ class _SettingsViewState extends State<SettingsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Avatar
+                const SizedBox(height: 10),
+                // ===== AVATAR (centrado, editable, animación si sube) =====
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    buildProfileAvatar(user.gender),
+                    buildProfileAvatar(user.gender, user.photoUrl),
+                    if (_uploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                      ),
                     Positioned(
                       bottom: 8,
                       left: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: _pickImage,
+                        onTap: _showImagePickerDialog,
                         child: Container(
                           padding: const EdgeInsets.all(7),
                           decoration: const BoxDecoration(

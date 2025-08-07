@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:provider/provider.dart';
+import 'dart:io';
 import '../models/transaction_model.dart';
+import '../models/payment_model.dart';
 import '../models/enums.dart';
+import '../controllers/debt_controller.dart';
 
 class DebtDetail extends StatelessWidget {
   final TransactionModel debt;
@@ -11,7 +14,10 @@ class DebtDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = debt.amount - debt.paid;
-    final df        = DateFormat('dd/MM/yyyy');
+    final df = DateFormat('dd/MM/yyyy');
+    final allPayments = context.watch<DebtController>().allPayments;
+    // Filtra pagos de esta deuda
+    final debtPayments = allPayments.where((p) => p.debtId == debt.id).toList();
 
     return Scaffold(
       appBar: AppBar(title: Text('Detalle — ${debt.concept}')),
@@ -34,7 +40,26 @@ class DebtDetail extends StatelessWidget {
             const Text('Historial de pagos',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
-            const Text('En construcción…'),
+            debtPayments.isEmpty
+                ? const Text('Aún no hay pagos registrados para esta deuda.',
+                    style: TextStyle(color: Color(0xFF837AB6)))
+                : Column(
+                    children: debtPayments
+                        .map((p) => Card(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              child: ListTile(
+                                leading: const Icon(Icons.payments_outlined, color: Color(0xFF837AB6)),
+                                title: Text('\$${p.amount.toStringAsFixed(2)}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Text(df.format(p.date)),
+                                trailing: p.comprobanteUrl != null && p.comprobanteUrl!.isNotEmpty
+                                    ? const Icon(Icons.receipt, color: Colors.green)
+                                    : null,
+                                onTap: () => _showPaymentDetail(context, p),
+                              ),
+                            ))
+                        .toList(),
+                  ),
           ],
         ),
       ),
@@ -53,7 +78,6 @@ class DebtDetail extends StatelessWidget {
         ),
       );
 
-  /* traducción bonita */
   String _freqLabel(PaymentFreq f) => switch (f) {
         PaymentFreq.mensual   => 'Mensual',
         PaymentFreq.quincenal => 'Quincenal',
@@ -61,4 +85,34 @@ class DebtDetail extends StatelessWidget {
         PaymentFreq.anual     => 'Anual',
         PaymentFreq.diaria    => 'Diaria',
       };
+
+  void _showPaymentDetail(BuildContext context, PaymentModel payment) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Detalle del pago'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Monto: \$${payment.amount.toStringAsFixed(2)}'),
+            if (payment.comprobanteUrl != null && payment.comprobanteUrl!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: payment.comprobanteUrl!.startsWith('file://')
+                    ? Image.file(
+                        File(payment.comprobanteUrl!.substring(7)), height: 120)
+                    : Image.network(payment.comprobanteUrl!, height: 120),
+              ),
+            Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(payment.date)}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          )
+        ],
+      ),
+    );
+  }
 }

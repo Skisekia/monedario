@@ -36,7 +36,7 @@ class AuthController {
       }
       if (mounted()) {
         showSuccessNotification(context, "¡Bienvenido de nuevo!");
-        // Aquí puedes navegar al dashboard si quieres
+        // Aquí navega a la pantalla principal o donde sea necesario
       }
     } on FirebaseAuthException catch (e) {
       if (mounted()) {
@@ -92,6 +92,7 @@ class AuthController {
           showErrorNotification(context, "No se pudo completar el registro.");
         }
       }
+      // Manejo de errores específicos de FirebaseAuth
     } catch (_) {
       if (mounted()) {
         showErrorNotification(context, "Error desconocido. Intenta más tarde.");
@@ -116,6 +117,10 @@ class AuthController {
           "Te hemos enviado un correo para restablecer tu contraseña.",
         );
       }
+      //
+
+
+
     } on FirebaseAuthException catch (e) {
       if (mounted()) {
         if (e.code == 'user-not-found') {
@@ -126,6 +131,7 @@ class AuthController {
           showErrorNotification(context, "No se pudo enviar el correo. Intenta de nuevo.");
         }
       }
+      // Manejo de errores específicos de FirebaseAuth
     } catch (_) {
       if (mounted()) {
         showErrorNotification(context, "Error desconocido. Intenta más tarde.");
@@ -157,6 +163,7 @@ class AuthController {
     required bool Function() mounted,
   }) async {
     try {
+      // Verifica que el usuario esté autenticado
       final user = _auth.currentUser;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
@@ -175,9 +182,10 @@ class AuthController {
     }
   }
 
-  // ========== GETTERS RÁPIDOS ==========
+  // GETTERS RÁPIDOS
   User? get currentUser => _auth.currentUser;
 
+// Verifica si el usuario está autenticado
   bool get isLoggedIn => _auth.currentUser != null;
 
   Future<bool> isEmailVerified() async {
@@ -189,38 +197,46 @@ class AuthController {
     return false;
   }
 
-  // ========== OBTENER USERMODEL DE FIRESTORE ==========
+  // OBTENER USERMODEL DE FIRESTORE
   Future<UserModel?> getCurrentUserModel() async {
-    final user = _auth.currentUser;
-    if (user == null) return null;
+  final user = _auth.currentUser;
+  if (user == null) return null;
 
-    try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data()!;
-        return UserModel(
-          name: data['name'] ?? user.displayName ?? '',
-          email: data['email'] ?? user.email ?? '',
-          gender: data['gender'] ?? '',
-          provider: data['provider'] ?? '',
-          profileIconAsset: data['profileIconAsset'],
-        );
-      }
-      // Si no existe en Firestore, regresa el usuario de Auth
+// Intenta obtener el usuario de Firestore
+  // Si no existe, regresa el usuario de FirebaseAuth
+  try {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      final data = doc.data()!;
       return UserModel(
-        name: user.displayName ?? '',
-        email: user.email ?? '',
-        gender: '',
-        provider: '',
-        profileIconAsset: null,
+        name: data['name'] ?? user.displayName ?? '',
+        email: data['email'] ?? user.email ?? '', 
+        gender: data['gender'] ?? '',
+        provider: data['provider'] ?? '',
+        profileIconAsset: data['profileIconAsset'],
+        balance: (data['balance'] != null)
+            ? (data['balance'] is int ? (data['balance'] as int).toDouble() : data['balance'] as double)
+            : 0.0,
+        photoUrl: data['photoUrl'], // se lee la foto del usuario
       );
-    } catch (e) {
-      // Puedes loggear el error
-      return null;
     }
+    // Si no existe en Firestore, regresa el usuario de Auth
+    return UserModel(
+      name: user.displayName ?? '',
+      email: user.email ?? '',
+      gender: '',
+      provider: '',
+      profileIconAsset: null,
+      balance: 0.0,
+      photoUrl: null,
+    );
+  } catch (e) {
+    // Puedes loggear el error
+    return null;
   }
+}
 
-// ========== ACTUALIZAR DATOS DE PERFIL ==========
+// ACTUALIZAR DATOS DE PERFIL
   Future<void> updateProfileData({
   required String newName,
   String? newPassword,

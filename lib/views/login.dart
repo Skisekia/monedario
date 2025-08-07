@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../controllers/login_controller.dart';
-import '../utils/modals_view.dart'; // Aquí estará tu función showForgotPasswordModal
+import '../utils/modals_view.dart'; 
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
+// Esta vista permite a los usuarios iniciar sesión en la aplicación
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
+// Estado de la vista de inicio de sesión
 class _LoginViewState extends State<LoginView> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -17,6 +19,7 @@ class _LoginViewState extends State<LoginView> {
   bool _loading = false;
   late LoginController _controller;
 
+// Inicializa el controlador de inicio de sesión
   @override
   void initState() {
     super.initState();
@@ -36,6 +39,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+// Limpia los controladores al destruir el widget
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -43,6 +47,7 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+// Construye la vista de inicio de sesión
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -50,6 +55,7 @@ class _LoginViewState extends State<LoginView> {
     final isTablet = screenWidth > 600;
     final cardTopMargin = isTablet ? 200.0 : screenHeight * 0.18;
 
+// Retorna el widget principal de la vista
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: GestureDetector(
@@ -63,7 +69,7 @@ class _LoginViewState extends State<LoginView> {
         child: SafeArea(
           child: Stack(
             children: [
-              // ==== Fondo gradiente ====
+              //Fondo gradiente
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(

@@ -1,4 +1,3 @@
-// 📄 lib/views/add_debt_view.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +8,7 @@ import '../controllers/debt_controller.dart';
 import '../controllers/transaction_controller.dart';
 import '../models/enums.dart';
 import '../models/transaction_model.dart';
+import '../utils/notifications_view.dart'; // Para showSuccessNotification
 import 'debt_detail.dart';
 
 // Enum privado para el formulario.
@@ -17,31 +17,21 @@ enum _Freq { diaria, semanal, quincenal, mensual, anual }
 extension _FreqExt on _Freq {
   String get label {
     switch (this) {
-      case _Freq.diaria:
-        return 'Diaria';
-      case _Freq.semanal:
-        return 'Semanal';
-      case _Freq.quincenal:
-        return 'Quincenal';
-      case _Freq.mensual:
-        return 'Mensual';
-      case _Freq.anual:
-        return 'Anual';
+      case _Freq.diaria: return 'Diaria';
+      case _Freq.semanal: return 'Semanal';
+      case _Freq.quincenal: return 'Quincenal';
+      case _Freq.mensual: return 'Mensual';
+      case _Freq.anual: return 'Anual';
     }
   }
 
   PaymentFreq toPaymentFreq() {
     switch (this) {
-      case _Freq.diaria:
-        return PaymentFreq.diaria;
-      case _Freq.semanal:
-        return PaymentFreq.semanal;
-      case _Freq.quincenal:
-        return PaymentFreq.quincenal;
-      case _Freq.mensual:
-        return PaymentFreq.mensual;
-      case _Freq.anual:
-        return PaymentFreq.anual;
+      case _Freq.diaria: return PaymentFreq.diaria;
+      case _Freq.semanal: return PaymentFreq.semanal;
+      case _Freq.quincenal: return PaymentFreq.quincenal;
+      case _Freq.mensual: return PaymentFreq.mensual;
+      case _Freq.anual: return PaymentFreq.anual;
     }
   }
 }
@@ -60,9 +50,7 @@ class AddDebtView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {
-              
-            },
+            onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.calendar_today),
@@ -153,15 +141,30 @@ class AddDebtView extends StatelessWidget {
   }
 }
 
+/// FAB que llama el modal card centrado
+class _GradientFab extends StatelessWidget {
+  const _GradientFab();
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      backgroundColor: Colors.white,
+      child: const Icon(Icons.add, color: Color(0xFF7F30FF)),
+      onPressed: () => _showDebtForm(context),
+    );
+  }
+}
+
+/// Modal tipo card centrado
 void _showDebtForm(BuildContext context) {
-  showModalBottomSheet(
+  showDialog(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => const _DebtForm(),
+    barrierDismissible: true,
+    builder: (ctx) => const _DebtFormDialog(),
   );
 }
 
+/// ---- Card resumen ----
 class _DebtsSummaryCard extends StatelessWidget {
   const _DebtsSummaryCard();
 
@@ -225,19 +228,7 @@ class _DebtsSummaryCard extends StatelessWidget {
   }
 }
 
-class _GradientFab extends StatelessWidget {
-  const _GradientFab();
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      backgroundColor: Colors.white,
-      child: const Icon(Icons.add, color: Color(0xFF7F30FF)),
-      onPressed: () => _showDebtForm(context),
-    );
-  }
-}
-
+/// ---- Card de cada deuda ----
 class _DebtCard extends StatelessWidget {
   final TransactionModel debt;
   const _DebtCard({required this.debt});
@@ -291,21 +282,41 @@ class _Chip extends StatelessWidget {
       Chip(avatar: Icon(icon, size: 16), label: Text(label));
 }
 
-class _DebtForm extends StatefulWidget {
-  const _DebtForm();
+/// ---- MODAL DE NUEVA DEUDA (CARD CENTRADO) ----
+class _DebtFormDialog extends StatefulWidget {
+  const _DebtFormDialog();
+
   @override
-  State<_DebtForm> createState() => _DebtFormState();
+  State<_DebtFormDialog> createState() => _DebtFormDialogState();
 }
 
-class _DebtFormState extends State<_DebtForm> {
+class _DebtFormDialogState extends State<_DebtFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _conceptCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
   final _creditorCtrl = TextEditingController();
   final _paymentsCtrl = TextEditingController(text: '1');
+  double _total = 0.0;
+  bool _saving = false;
 
   DateTime? _dueDate;
   _Freq _frequency = _Freq.mensual;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountCtrl.addListener(_updateTotal);
+    _paymentsCtrl.addListener(_updateTotal);
+    _updateTotal();
+  }
+
+  void _updateTotal() {
+    final amount = double.tryParse(_amountCtrl.text) ?? 0;
+    final payments = int.tryParse(_paymentsCtrl.text) ?? 0;
+    setState(() {
+      _total = (amount > 0 && payments > 0) ? amount * payments : 0.0;
+    });
+  }
 
   @override
   void dispose() {
@@ -318,102 +329,214 @@ class _DebtFormState extends State<_DebtForm> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    // Dimensiones responsivas
+    final mq = MediaQuery.of(context);
+    final isTablet = mq.size.width > 600;
+    final maxWidth = isTablet ? 420.0 : mq.size.width * 0.92;
+
     return Center(
-      child: Padding(
-        padding: EdgeInsets.only(
-            bottom: bottomInset + 16, left: 24, right: 24),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24)),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: maxWidth,
+          margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 18,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
             child: Form(
               key: _formKey,
               child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Nueva deuda',
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    _buildInput(
-                      controller: _conceptCtrl,
-                      hint: 'Concepto',
-                      icon: Icons.description_rounded,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty)
-                              ? 'Requerido'
-                              : null,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Nueva deuda',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF250E2C),
+                      letterSpacing: 0.3,
                     ),
-                    const SizedBox(height: 16),
-                    _buildInput(
-                      controller: _amountCtrl,
-                      hint: 'Monto (\$)',
-                      icon: Icons.attach_money_rounded,
-                      keyboard: TextInputType.number,
-                      validator: (v) =>
-                          (double.tryParse(v ?? '') ?? 0) <= 0
-                              ? 'Inválido'
-                              : null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Concepto
+                  TextFormField(
+                    controller: _conceptCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Concepto',
+                      prefixIcon: const Icon(Icons.description_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF4F6FA),
                     ),
-                    const SizedBox(height: 16),
-                    _buildInput(
-                      controller: _creditorCtrl,
-                      hint: 'Persona / Institución',
-                      icon: Icons.person_rounded,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Monto del pago
+                  TextFormField(
+                    controller: _amountCtrl,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Monto del pago (\$)',
+                      prefixIcon: const Icon(Icons.attach_money_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF4F6FA),
                     ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: _pickDate,
-                      child: InputDecorator(
-                        decoration: _decoration('Fecha pago'),
-                        child: Row(children: [
-                          const Icon(Icons.event,
-                              color: Colors.black54),
+                    validator: (v) =>
+                        (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Inválido' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Número de pagos
+                  TextFormField(
+                    controller: _paymentsCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Número de pagos',
+                      prefixIcon: const Icon(Icons.payments_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF4F6FA),
+                    ),
+                    validator: (v) =>
+                        (int.tryParse(v ?? '') ?? 0) <= 0 ? 'Mínimo 1' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Monto total (solo lectura)
+                  TextFormField(
+                    readOnly: true,
+                    enabled: false,
+                    decoration: InputDecoration(
+                      labelText: 'Monto total',
+                      prefixIcon: const Icon(Icons.calculate_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade200,
+                    ),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.black87),
+                    controller: TextEditingController(
+                      text: '\$${_total.toStringAsFixed(2)}',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Persona / Institución
+                  TextFormField(
+                    controller: _creditorCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Persona / Institución',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF4F6FA),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Fecha de pago
+                  InkWell(
+                    onTap: _pickDate,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Fecha de pago',
+                        prefixIcon: const Icon(Icons.event_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF4F6FA),
+                      ),
+                      child: Row(
+                        children: [
                           const SizedBox(width: 8),
                           Text(
                             _dueDate == null
                                 ? 'Seleccionar'
-                                : DateFormat('dd/MM/yyyy')
-                                    .format(_dueDate!),
+                                : DateFormat('dd/MM/yyyy').format(_dueDate!),
                             style: TextStyle(
                                 color: _dueDate == null
                                     ? Colors.grey
-                                    : Colors.black87),
+                                    : Colors.black87,
+                                fontSize: 16),
                           ),
-                        ]),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<_Freq>(
-                      value: _frequency,
-                      decoration: _decoration('Repetición'),
-                      items: _Freq.values
-                          .map((f) => DropdownMenuItem(
-                              value: f, child: Text(f.label)))
-                          .toList(),
-                      onChanged: (v) =>
-                          setState(() => _frequency = v!),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Repetición (Dropdown)
+                  DropdownButtonFormField<_Freq>(
+                    value: _frequency,
+                    decoration: InputDecoration(
+                      labelText: 'Frecuencia de pago',
+                      prefixIcon: const Icon(Icons.repeat_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF4F6FA),
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: 140,
-                      height: 44,
-                      child: ElevatedButton(
-                        onPressed: _save,
-                        child: const Text('Guardar'),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(22),
-                          ),
+                    items: _Freq.values
+                        .map((f) => DropdownMenuItem(
+                            value: f, child: Text(f.label)))
+                        .toList(),
+                    onChanged: (v) =>
+                        setState(() => _frequency = v!),
+                  ),
+                  const SizedBox(height: 22),
+
+                  // Botón guardar
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: _saving
+                          ? const SizedBox(
+                              width: 22, height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.check_circle),
+                      label: const Text('Guardar deuda', style: TextStyle(fontSize: 17)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
                         ),
+                        backgroundColor: const Color(0xFF837AB6),
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      onPressed: _saving ? null : _save,
                     ),
-                  ]),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -421,43 +544,12 @@ class _DebtFormState extends State<_DebtForm> {
     );
   }
 
-  InputDecoration _decoration(String label) =>
-      InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: const Color(0xFFF4F6FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-      );
-
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboard = TextInputType.text,
-    String? Function(String?)? validator,
-  }) =>
-      TextFormField(
-        controller: controller,
-        keyboardType: keyboard,
-        validator: validator,
-        decoration:
-            _decoration(hint).copyWith(
-          prefixIcon: Icon(icon, color: Colors.black54),
-        ),
-      );
-
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final picked =
-        await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      firstDate:
-          DateTime(now.year - 1),
-      lastDate:
-          DateTime(now.year + 5),
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 5),
       initialDate: _dueDate ?? now,
     );
     if (picked != null) {
@@ -468,37 +560,45 @@ class _DebtFormState extends State<_DebtForm> {
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dueDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona una fecha de pago')),
-      );
+      showErrorNotification(context, 'Selecciona una fecha de pago');
       return;
     }
+
+    setState(() => _saving = true);
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuario no autenticado')),
-      );
+      showErrorNotification(context, 'Usuario no autenticado');
+      setState(() => _saving = false);
       return;
     }
 
-    // --- ATENCIÓN AQUÍ: estos deben ser enums, no strings ---
-    final nuevaDeuda = TransactionModel(
-      id: const Uuid().v4(),
-      owner: user.uid,
-      type: TransactionType.debt,          // ← Enum
-      accountType: AccountType.personal,   // ← Enum
-      createdAt: DateTime.now(),
-      concept: _conceptCtrl.text.trim(),
-      amount: double.parse(_amountCtrl.text),
-      paid: 0,
-      dueDate: _dueDate!,
-      frequency: _frequency.toPaymentFreq(),
-      numPayments: int.tryParse(_paymentsCtrl.text) ?? 1,
-      // otros campos...
-    );
+    try {
+      final nuevaDeuda = TransactionModel(
+        id: const Uuid().v4(),
+        owner: user.uid,
+        type: TransactionType.debt,
+        accountType: AccountType.personal,
+        createdAt: DateTime.now(),
+        concept: _conceptCtrl.text.trim(),
+        amount: _total,
+        paid: 0,
+        dueDate: _dueDate!,
+        frequency: _frequency.toPaymentFreq(),
+        numPayments: int.tryParse(_paymentsCtrl.text) ?? 1,
+        date: DateTime.now(),
+      );
 
-    context.read<DebtController>().addDebt(nuevaDeuda);
-    Navigator.pop(context);
+      context.read<DebtController>().addDebt(nuevaDeuda);
+
+      if (!mounted) return;
+      showSuccessNotification(context, "¡Deuda registrada exitosamente!");
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      showErrorNotification(context, "No se pudo registrar la deuda");
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
 import '../controllers/transaction_controller.dart';
 import '../models/enums.dart';
+import '../models/transaction_model.dart';
 import '../utils/app_header.dart';
+import 'package:fl_chart/fl_chart.dart';
+// Solo importa si realmente tienes la clase. Si no, usa la definición temporal abajo.
+// import '../utils/table_calendar.dart';
 
 class TransactionFormView extends StatefulWidget {
   const TransactionFormView({super.key});
@@ -14,54 +17,102 @@ class TransactionFormView extends StatefulWidget {
 }
 
 class _TransactionFormViewState extends State<TransactionFormView> {
-  /*  ────────────    futuros formularios    ──────────── */
-  final _amountCtrl       = TextEditingController();
-  final _descCtrl         = TextEditingController();
-  final _counterpartyCtrl = TextEditingController();
-  final _interestCtrl     = TextEditingController();
-  final _frequencyCtrl    = TextEditingController();
-  final _numPaymentsCtrl  = TextEditingController();
-
-  @override
-  void dispose() {
-    _amountCtrl.dispose();
-    _descCtrl.dispose();
-    _counterpartyCtrl.dispose();
-    _interestCtrl.dispose();
-    _frequencyCtrl.dispose();
-    _numPaymentsCtrl.dispose();
-    super.dispose();
-  }
+  bool showAllTransactions = false;
 
   @override
   Widget build(BuildContext context) {
     final txController = Provider.of<TransactionController>(context);
 
-    /* ─── Totales por tipo de cuenta ─── */
+    // Info real de cuentas
     final efectivo = txController.getTotalByAccountType(AccountType.cash);
     final tarjeta  = txController.getTotalByAccountType(AccountType.card);
     final creditos = txController.getTotalByAccountType(AccountType.credit);
     final deudas   = txController.getTotalByAccountType(AccountType.debt);
 
-    /* ─── Próximos pagos ordenados ─── */
+    // Próximos pagos (ordenados por fecha ascendente)
     final upcoming = txController.transactions
         .where((tx) => tx.dueDate.isAfter(DateTime.now()))
         .toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
+    // Transacciones recientes (las más nuevas primero)
+    final recentTx = List<TransactionModel>.from(txController.transactions)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    // Filtra sólo las del mes actual para gráficas/cards
+    final now = DateTime.now();
+    final monthTx = txController.transactions.where((tx) =>
+      tx.date.month == now.month && tx.date.year == now.year
+    ).toList();
+
+    // Ingresos/Egresos/pagos/pendiente para cards adicionales
+    final ingresosMes = monthTx.where((tx) => tx.type == TransactionType.income).fold<double>(0, (s, tx) => s + tx.amount);
+    final egresosMes  = monthTx.where((tx) => tx.type == TransactionType.expense).fold<double>(0, (s, tx) => s + tx.amount);
+    final pagosReal   = monthTx.where((tx) => tx.type == TransactionType.payment).fold<double>(0, (s, tx) => s + tx.amount);
+    final deudaPend   = txController.getTotalByAccountType(AccountType.debt);
+
     final size     = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
 
-    /* 4-columnas en tablet, 2-columnas en móvil */
     final crossAxisCount = isTablet ? 4 : 2;
-    final availableW     = size.width - 32 /*padding horizontal total*/;
+    final availableW     = size.width - 32;
     final spacing        = 8.0;
     final cardW = (availableW - spacing * (crossAxisCount - 1)) / crossAxisCount;
-
-    /* tamaños adaptativos para texto / icono */
     final iconSize      = isTablet ? 34.0 : 24.0;
     final fontSize      = isTablet ? 15.0 : 12.0;
     final valueFontSize = isTablet ? 18.0 : 14.0;
+
+    // Gráfica simple de ingresos vs egresos este mes
+    Widget barChart = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: AspectRatio(
+        aspectRatio: 1.7,
+        child: BarChart(
+          BarChartData(
+            borderData: FlBorderData(show: false),
+            groupsSpace: 24,
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(showTitles: true, reservedSize: 32),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (val, meta) {
+                    switch (val.toInt()) {
+                      case 0: return Text("Ingresos", style: TextStyle(fontSize: 11));
+                      case 1: return Text("Egresos", style: TextStyle(fontSize: 11));
+                      case 2: return Text("Pagos", style: TextStyle(fontSize: 11));
+                      default: return const SizedBox();
+                    }
+                  },
+                ),
+              ),
+            ),
+            barGroups: [
+              BarChartGroupData(
+                x: 0,
+                barRods: [
+                  BarChartRodData(toY: ingresosMes, width: 16, color: Colors.green)
+                ]
+              ),
+              BarChartGroupData(
+                x: 1,
+                barRods: [
+                  BarChartRodData(toY: egresosMes, width: 16, color: Colors.red)
+                ]
+              ),
+              BarChartGroupData(
+                x: 2,
+                barRods: [
+                  BarChartRodData(toY: pagosReal, width: 16, color: Colors.blue)
+                ]
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -69,14 +120,13 @@ class _TransactionFormViewState extends State<TransactionFormView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /* ────────── ENCABEZADO ────────── */
             AppHeader(
               showHome: false,
               onHomeTap: () => Navigator.pushNamedAndRemoveUntil(
-                  context, '/home_view', (_) => false),
+                context, '/home_view', (_) => false),
             ),
 
-            /* ────────── RESUMEN CUENTAS ────────── */
+            // Cards resumen de cuentas
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Wrap(
@@ -128,50 +178,78 @@ class _TransactionFormViewState extends State<TransactionFormView> {
               ),
             ),
 
-            /* ────────── BALANCE GLOBAL ────────── */
+            // Cards adicionales
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  _StatCard("Ingresos este mes", ingresosMes, Colors.green),
+                  _StatCard("Egresos este mes", egresosMes, Colors.red),
+                  _StatCard("Pagos realizados", pagosReal, Colors.blue),
+                  _StatCard("Deuda pendiente", deudaPend, Colors.orange, isNegative: true),
+                ],
+              ),
+            ),
+
+            // Gráfica simple
+            barChart,
+
+            // Balance global
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Card(
                 elevation: 1,
-                color: const Color(0xFFF6A5C0).withOpacity(.15),
+                color: const Color(0xFFF6A5C0).withAlpha((.15 * 255).toInt()), // <-- Migrado a .withAlpha
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                  borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 24 : 12,
-                      vertical  : isTablet ? 14 : 10),
+                    horizontal: isTablet ? 24 : 12,
+                    vertical  : isTablet ? 14 : 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _amountColumn("Ingresos", txController.totalIncome,
-                          fontSize, valueFontSize, Colors.green),
+                        fontSize, valueFontSize, Colors.green),
                       _amountColumn("Egresos", txController.totalExpense,
-                          fontSize, valueFontSize, Colors.red),
+                        fontSize, valueFontSize, Colors.red),
                       _amountColumn(
-                          "Balance",
-                          txController.totalIncome - txController.totalExpense,
-                          fontSize,
-                          valueFontSize,
-                          Colors.blue),
+                        "Balance",
+                        txController.totalIncome - txController.totalExpense,
+                        fontSize,
+                        valueFontSize,
+                        Colors.blue),
                     ],
                   ),
                 ),
               ),
             ),
 
-            /* ────────── PRÓXIMOS PAGOS ────────── */
+            // Próximos pagos/eventos
             Padding(
-              padding:
-                  const EdgeInsets.only(top: 14, left: 16, right: 16, bottom: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Próximos pagos / eventos",
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(fontWeight: FontWeight.bold),
-                ),
+              padding: const EdgeInsets.only(top: 14, left: 16, right: 16, bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Próximos pagos / eventos",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  if (upcoming.isNotEmpty)
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => TableCalendarView()) // Clase temporal abajo
+                        );
+                      },
+                      child: const Text("Ver todos"),
+                    ),
+                ],
               ),
             ),
             if (upcoming.isEmpty)
@@ -180,26 +258,53 @@ class _TransactionFormViewState extends State<TransactionFormView> {
                 child: Center(child: Text("No tienes pagos próximos registrados")),
               )
             else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: upcoming.length,
-                itemBuilder: (_, i) {
-                  final tx = upcoming[i];
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                    child: ListTile(
-                      leading: Icon(_iconByTxType(tx.type),
-                          color: const Color(0xFF837AB6)),
-                      title: Text(tx.concept, style: TextStyle(fontSize: fontSize)),
-                      subtitle:
-                          Text("Monto: \$${tx.amount.toStringAsFixed(2)}"),
-                      trailing:
-                          Text(DateFormat('dd MMM').format(tx.dueDate)),
+              SizedBox(
+                height: 170,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: upcoming.length > 5 ? 5 : upcoming.length,
+                  itemBuilder: (_, i) {
+                    final tx = upcoming[i];
+                    return _PaymentCard(tx: tx);
+                  },
+                ),
+              ),
+
+            // Transacciones recientes
+            Padding(
+              padding: const EdgeInsets.only(top: 20, left: 16, right: 16, bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Transacciones recientes",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  if (recentTx.length > 3)
+                    TextButton(
+                      onPressed: () {
+                        setState(() => showAllTransactions = !showAllTransactions);
+                      },
+                      child: Text(showAllTransactions ? "Ver menos" : "Ver todo"),
                     ),
-                  );
-                },
+                ],
+              ),
+            ),
+            ...List.generate(
+              showAllTransactions ? recentTx.length : (recentTx.length > 3 ? 3 : recentTx.length),
+              (i) {
+                final tx = recentTx[i];
+                return _RecentTxCard(tx: tx);
+              }
+            ),
+            if (recentTx.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: Text("No tienes transacciones recientes")),
               ),
 
             const SizedBox(height: 18),
@@ -209,7 +314,6 @@ class _TransactionFormViewState extends State<TransactionFormView> {
     );
   }
 
-  /*  mini-helper para columnas del balance  */
   Widget _amountColumn(String label, double value, double labelF,
       double valueF, Color color) {
     return Column(
@@ -258,7 +362,7 @@ class _AccountSummaryCard extends StatelessWidget {
     return SizedBox(
       width: cardWidth,
       child: Card(
-        color: color.withOpacity(.12),
+        color: color.withAlpha((.12 * 255).toInt()), // <-- Migrado a .withAlpha
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
@@ -289,6 +393,130 @@ class _AccountSummaryCard extends StatelessWidget {
   }
 }
 
+/*─────────────────────────────*/
+/*   Cards Adicionales Stats   */
+/*─────────────────────────────*/
+class _StatCard extends StatelessWidget {
+  final String label;
+  final double value;
+  final Color color;
+  final bool isNegative;
+  const _StatCard(this.label, this.value, this.color, {this.isNegative = false, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 144,
+      child: Card(
+        color: color.withAlpha((.09 * 255).toInt()), // <-- Migrado a .withAlpha
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13)),
+              const SizedBox(height: 3),
+              Text(
+                '${isNegative ? "- " : ""}\$${value.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: isNegative ? Colors.red : color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*──────────────────────────────────────────────*/
+/*        Card de próximo pago compacto         */
+/*──────────────────────────────────────────────*/
+class _PaymentCard extends StatelessWidget {
+  final TransactionModel tx;
+  const _PaymentCard({required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 170,
+      margin: const EdgeInsets.only(right: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(_iconByTxType(tx.type), color: const Color(0xFF837AB6), size: 30),
+              const SizedBox(height: 6),
+              Text(
+                tx.concept,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 3),
+              Text('Monto: \$${tx.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12)),
+              const Spacer(),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  DateFormat('dd MMM').format(tx.dueDate),
+                  style: const TextStyle(color: Colors.black54, fontSize: 11),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*──────────────────────────────────────────────*/
+/*      Card comprimida de transacción          */
+/*──────────────────────────────────────────────*/
+class _RecentTxCard extends StatelessWidget {
+  final TransactionModel tx;
+  const _RecentTxCard({required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: ListTile(
+        leading: Icon(_iconByTxType(tx.type), color: const Color(0xFF837AB6)),
+        title: Text(
+          tx.concept,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(DateFormat('dd MMM yyyy').format(tx.date)),
+        trailing: Text(
+          (tx.type == TransactionType.expense || tx.type == TransactionType.debt)
+            ? "-\$${tx.amount.toStringAsFixed(2)}"
+            : "+\$${tx.amount.toStringAsFixed(2)}",
+          style: TextStyle(
+            color: (tx.type == TransactionType.expense || tx.type == TransactionType.debt)
+              ? Colors.red
+              : Colors.green,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /*──────────────────────────────────────────────*/
 /*   Ícono sugerido según tipo de transacción   */
 /*──────────────────────────────────────────────*/
@@ -302,5 +530,19 @@ IconData _iconByTxType(TransactionType type) {
     case TransactionType.payment:     return Icons.request_quote_rounded;
     case TransactionType.debt:        return Icons.account_balance_wallet_rounded;
     case TransactionType.loan:        return Icons.account_balance_wallet_rounded;
+  }
+}
+
+/*──────────────────────────────────────────────*/
+/*  Widget temporal para TableCalendarView      */
+/*  Reemplázalo con tu implementación real      */
+/*──────────────────────────────────────────────*/
+class TableCalendarView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Calendario de pagos")),
+      body: Center(child: Text("Aquí va el calendario")),
+    );
   }
 }

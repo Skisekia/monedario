@@ -1,33 +1,34 @@
-// 📄 lib/views/add_payment.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../controllers/debt_controller.dart';
-//import '../models/transaction_model.dart';
 import '../models/payment_model.dart';
 
-// ----- Helper para detalle del pago -----
 void showPaymentDetail(BuildContext context, PaymentModel payment) {
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text('Detalle del pago'),
+      title: const Text('Detalle del pago'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('Monto: \$${payment.amount.toStringAsFixed(2)}'),
-          if (payment.comprobanteUrl != null)
+          if (payment.comprobanteUrl != null && payment.comprobanteUrl!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Image.network(payment.comprobanteUrl!, height: 120),
+              child: payment.comprobanteUrl!.startsWith('file://')
+                  ? Image.file(File(payment.comprobanteUrl!.substring(7)), height: 120)
+                  : Image.network(payment.comprobanteUrl!, height: 120),
             ),
           Text('Fecha: ${payment.date.toString().substring(0, 16)}'),
         ],
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cerrar'),
+        )
       ],
     ),
   );
@@ -50,7 +51,7 @@ class AddPaymentView extends StatelessWidget {
           const SizedBox(height: 18),
           const _PaymentsSummaryCard(),
           const SizedBox(height: 8),
-          Expanded(child: _PaymentsList()),
+          const Expanded(child: _PaymentsList()),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -72,13 +73,20 @@ void _showPaymentForm(BuildContext context) {
   );
 }
 
-// --- Card resumen (puedes conectar a tus controladores) ---
 class _PaymentsSummaryCard extends StatelessWidget {
   const _PaymentsSummaryCard();
 
   @override
   Widget build(BuildContext context) {
-    // Puedes conectar a tus controladores para totales reales.
+    final debtCtrl = context.watch<DebtController>();
+    final allPayments = debtCtrl.allPayments;
+    final thisMonth = DateTime.now().month;
+    final pagosMes = allPayments
+        .where((p) => p.date.month == thisMonth)
+        .fold<double>(0, (sum, p) => sum + p.amount);
+    final totalAbonado =
+        allPayments.fold<double>(0, (sum, p) => sum + p.amount);
+
     return Card(
       color: const Color(0xFFF7F2FF),
       elevation: 1,
@@ -87,9 +95,9 @@ class _PaymentsSummaryCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: const [
-            _SummaryItem(label: 'Pagos este mes', value: '\$0.00'),
-            _SummaryItem(label: 'Total abonado', value: '\$0.00'),
+          children: [
+            _SummaryItem(label: 'Pagos este mes', value: '\$${pagosMes.toStringAsFixed(2)}'),
+            _SummaryItem(label: 'Total abonado', value: '\$${totalAbonado.toStringAsFixed(2)}'),
           ],
         ),
       ),
@@ -111,12 +119,13 @@ class _SummaryItem extends StatelessWidget {
       );
 }
 
-// --- Lista de pagos reales ---
 class _PaymentsList extends StatelessWidget {
+  const _PaymentsList();
+
   @override
   Widget build(BuildContext context) {
     final debtCtrl = context.watch<DebtController>();
-    final allPayments = debtCtrl.allPayments; // <- Debes exponer esto desde el controlador
+    final allPayments = debtCtrl.allPayments;
 
     if (allPayments.isEmpty) {
       return const Center(
@@ -139,11 +148,8 @@ class _PaymentsList extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            leading: p.comprobanteUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(p.comprobanteUrl!, width: 48, height: 48, fit: BoxFit.cover))
-                : const Icon(Icons.receipt_long, size: 36, color: Color(0xFF837AB6)),
+            // SIEMPRE ICONO, NUNCA IMAGEN
+            leading: const Icon(Icons.receipt_long, size: 36, color: Color(0xFF837AB6)),
             title: Text('\$${p.amount.toStringAsFixed(2)}',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(p.date.toString().substring(0, 16)),
@@ -156,10 +162,6 @@ class _PaymentsList extends StatelessWidget {
   }
 }
 
-// =========================
-// FORMULARIO MODAL CON FOTO
-// =========================
-
 class _PaymentForm extends StatefulWidget {
   const _PaymentForm();
 
@@ -170,7 +172,7 @@ class _PaymentForm extends StatefulWidget {
 class _PaymentFormState extends State<_PaymentForm> {
   final _formKey = GlobalKey<FormState>();
   final _amountCtrl = TextEditingController();
-  String? _paymentType; // "debt" o "loan"
+  String? _paymentType;
   String? _selectedId;
   File? _imageFile;
   bool _uploading = false;
@@ -217,7 +219,7 @@ class _PaymentFormState extends State<_PaymentForm> {
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 12,
-                      offset: Offset(0, -6),
+                      offset: const Offset(0, -6),
                     )
                   ],
                 ),
@@ -264,7 +266,7 @@ class _PaymentFormState extends State<_PaymentForm> {
                                   (item) => DropdownMenuItem(
                                     value: item.id,
                                     child: Text(
-                                      '${item.concept} (\$${(item.amount - item.paid).toStringAsFixed(2)})',
+                                      '${item.concept} (\$${(item.amount - (item.paid ?? 0)).toStringAsFixed(2)})',
                                     ),
                                   ),
                                 )
@@ -285,7 +287,7 @@ class _PaymentFormState extends State<_PaymentForm> {
                         const SizedBox(height: 20),
                         Row(
                           children: [
-                            Text(
+                            const Text(
                               "Comprobante:",
                               style: TextStyle(
                                   fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black87),
@@ -301,16 +303,16 @@ class _PaymentFormState extends State<_PaymentForm> {
                                           child: Wrap(
                                             children: [
                                               ListTile(
-                                                leading: Icon(Icons.photo_camera),
-                                                title: Text('Tomar foto'),
+                                                leading: const Icon(Icons.photo_camera),
+                                                title: const Text('Tomar foto'),
                                                 onTap: () {
                                                   Navigator.pop(context);
                                                   _pickImage(ImageSource.camera);
                                                 },
                                               ),
                                               ListTile(
-                                                leading: Icon(Icons.photo_library),
-                                                title: Text('Subir desde galería'),
+                                                leading: const Icon(Icons.photo_library),
+                                                title: const Text('Subir desde galería'),
                                                 onTap: () {
                                                   Navigator.pop(context);
                                                   _pickImage(ImageSource.gallery);
@@ -418,7 +420,8 @@ class _PaymentFormState extends State<_PaymentForm> {
 
     String? comprobanteUrl;
     if (_imageFile != null) {
-      // Aquí debes subir la imagen a Firebase Storage y obtener la url.
+      comprobanteUrl = "file://${_imageFile!.path}";
+      // Si usas Firebase Storage, reemplaza por la subida real y la url pública
       // comprobanteUrl = await uploadToFirebaseStorage(_imageFile!);
     }
 

@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/auth_controller.dart';
+import '../models/user_model.dart';
 import '../ui/theme.dart';
-import '../models/enums.dart'; // enum TransactionType
+import '../models/enums.dart';
+import 'dashboard.dart';
+
+// Vista de prueba para transacciones
+class TransactionsTestView extends StatelessWidget {
+  const TransactionsTestView({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Todas las transacciones')),
+      body: const Center(child: Text('Vista de prueba de transacciones')),
+    );
+  }
+}
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.cardTop,
-      bottomNavigationBar: _BottomNavBar(),
-      floatingActionButton: _FloatingMiddleButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      body: SafeArea(
-        child: Column(
+    final auth = Provider.of<AuthController>(context, listen: false);
+
+    return FutureBuilder<UserModel?>(
+      future: auth.getCurrentUserModel(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final user = snapshot.data!;
+
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header con nombre real
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 18, 22, 4),
               child: Row(
@@ -24,25 +44,30 @@ class HomeView extends StatelessWidget {
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Hello,', style: TextStyle(fontSize: 18, color: AppColors.textSecondary)),
-                      Text('Siyam Ahmed!',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, color: AppColors.textPrimary)),
+                    children: [
+                      const Text('Hola,', style: TextStyle(fontSize: 18, color: AppColors.textSecondary)),
+                      Text(
+                        user.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 26,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
                       Icon(Icons.search, color: AppColors.textPrimary, size: 28),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 28),
                     ],
                   ),
                 ],
               ),
             ),
-            // Balance Card
-            _BalanceCard(),
-
+            // Balance Card (usa valor seguro)
+            _BalanceCard(balance: user.balance ?? 0),
             // Expanded area with scroll
             Expanded(
               child: SingleChildScrollView(
@@ -50,42 +75,58 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Upcoming payments
-                    _SectionTitle(title: "Upcoming payment", onSeeAll: () {}),
+                    // Próximos pagos
+                    _SectionTitle(
+                      title: "Próximos pagos",
+                      onSeeAll: () {
+                        // Solución recomendada: usa callback global definido en Dashboard
+                        // (ver nota abajo)
+                        if (Dashboard.changeTabExternal != null) {
+                          Dashboard.changeTabExternal!(0); // Cambia al tab Balance
+                        }
+                      },
+                    ),
                     SizedBox(
-                      height: 124,
+                      height: 120,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
                           _UpcomingPaymentCard(
                             color: AppColors.cardMain,
                             icon: Icons.subscriptions_rounded,
-                            title: "Adobe Premium",
-                            amount: "\$30/month",
-                            daysLeft: "2 days left",
+                            title: "Netflix",
+                            amount: "\$179/mes",
+                            daysLeft: "2 días restantes",
                           ),
                           const SizedBox(width: 14),
                           _UpcomingPaymentCard(
                             color: AppColors.cardSecondary,
-                            icon: Icons.apple_rounded,
-                            title: "Apple Premium",
-                            amount: "\$30/month",
-                            daysLeft: "5 days left",
+                            icon: Icons.shopping_basket,
+                            title: "CFE",
+                            amount: "\$300",
+                            daysLeft: "5 días restantes",
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Recent Transactions
-                    _SectionTitle(title: "Recent Transactions", onSeeAll: () {}),
+                    // Transacciones recientes
+                    _SectionTitle(
+                      title: "Transacciones recientes",
+                      onSeeAll: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TransactionsTestView()),
+                        );
+                      },
+                    ),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.textSecondary.withOpacity(0.07),
+                            color: AppColors.textSecondary.withAlpha((0.07 * 255).toInt()),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -94,27 +135,27 @@ class HomeView extends StatelessWidget {
                       child: Column(
                         children: [
                           _TransactionTile(
-                            icon: Icons.apple,
-                            title: "Apple Inc.",
-                            date: "21 Sep, 03:02 PM",
-                            amount: "-\$230.50",
-                            type: TransactionType.expense,
-                          ),
-                          Divider(height: 1),
-                          _TransactionTile(
-                            icon: Icons.subscriptions,
-                            title: "Adobe",
-                            date: "21 Sep, 02:22 PM",
-                            amount: "-\$130.50",
-                            type: TransactionType.expense,
-                          ),
-                          Divider(height: 1),
-                          _TransactionTile(
                             icon: Icons.shopping_cart,
                             title: "Amazon",
-                            date: "21 Sep, 02:02 PM",
-                            amount: "-\$20.50",
+                            date: "21 Jul, 02:02 PM",
+                            amount: "-\$250.00",
                             type: TransactionType.expense,
+                          ),
+                          Divider(height: 1),
+                          _TransactionTile(
+                            icon: Icons.restaurant,
+                            title: "Restaurante",
+                            date: "20 Jul, 01:22 PM",
+                            amount: "-\$120.00",
+                            type: TransactionType.expense,
+                          ),
+                          Divider(height: 1),
+                          _TransactionTile(
+                            icon: Icons.arrow_downward,
+                            title: "Salario",
+                            date: "20 Jul, 12:00 PM",
+                            amount: "+\$8,000.00",
+                            type: TransactionType.income,
                           ),
                         ],
                       ),
@@ -124,8 +165,8 @@ class HomeView extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -146,7 +187,7 @@ class _SectionTitle extends StatelessWidget {
           Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           TextButton(
             onPressed: onSeeAll,
-            child: Text("See all", style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+            child: Text("Ver todo", style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -156,6 +197,9 @@ class _SectionTitle extends StatelessWidget {
 
 // --- Balance Card
 class _BalanceCard extends StatelessWidget {
+  final double balance;
+  const _BalanceCard({required this.balance});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -195,9 +239,9 @@ class _BalanceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Current Balance", style: TextStyle(fontSize: 15, color: Colors.white.withAlpha(225))),
+                Text("Saldo actual", style: TextStyle(fontSize: 15, color: Colors.white.withAlpha(225))),
                 const SizedBox(height: 4),
-                Text("\$4,570.80", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text("\$${balance.toStringAsFixed(2)}", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white)),
               ],
             ),
           ),
@@ -218,7 +262,7 @@ class _BalanceCard extends StatelessWidget {
   }
 }
 
-// --- Upcoming payment card
+// --- Upcoming payment card (sin overflow)
 class _UpcomingPaymentCard extends StatelessWidget {
   final Color color;
   final IconData icon;
@@ -236,37 +280,38 @@ class _UpcomingPaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withAlpha(36),
-            blurRadius: 7,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: Colors.white, size: 34),
-              const Spacer(),
-              Icon(Icons.more_vert, color: Colors.white, size: 24),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15)),
-          const SizedBox(height: 2),
-          Text(amount, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white.withAlpha(225), fontSize: 18)),
-          const SizedBox(height: 2),
-          Text(daysLeft, style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 12)),
-        ],
+    return SizedBox(
+      width: 170,
+      height: 110,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(36),
+              blurRadius: 7,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Colors.white, size: 30),
+                const Spacer(),
+                Icon(Icons.more_vert, color: Colors.white, size: 20),
+              ],
+            ),
+            Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15)),
+            Text(amount, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white.withAlpha(225), fontSize: 15)),
+            Text(daysLeft, style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 11)),
+          ],
+        ),
       ),
     );
   }
@@ -303,49 +348,9 @@ class _TransactionTile extends StatelessWidget {
       trailing: Text(
         amount,
         style: TextStyle(
-          color: isNegative ? Color(0xFFE85050) : AppColors.textPrimary,
+          color: isNegative ? const Color(0xFFE85050) : AppColors.textPrimary,
           fontWeight: FontWeight.bold,
           fontSize: 16,
-        ),
-      ),
-    );
-  }
-}
-
-// --- Floating middle button (FAB central)
-class _FloatingMiddleButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      backgroundColor: AppColors.cardMain,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Icon(Icons.qr_code_scanner, color: Colors.white, size: 34),
-      onPressed: () {},
-    );
-  }
-}
-
-// --- Bottom Navigation Bar
-class _BottomNavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            IconButton(icon: Icon(Icons.home_rounded), onPressed: () {}, color: AppColors.cardMain),
-            Spacer(),
-            IconButton(icon: Icon(Icons.pie_chart_rounded), onPressed: () {}, color: AppColors.textSecondary),
-            Spacer(),
-            SizedBox(width: 50), // espacio para el botón flotante central
-            Spacer(),
-            IconButton(icon: Icon(Icons.notifications_none), onPressed: () {}, color: AppColors.textSecondary),
-            Spacer(),
-            IconButton(icon: Icon(Icons.person_outline), onPressed: () {}, color: AppColors.textSecondary),
-          ],
         ),
       ),
     );

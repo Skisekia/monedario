@@ -24,6 +24,7 @@ dependencies:
   path_provider: ^2.1.2   # Acceso al sistema de archivos
   permission_handler: ^11.3.1 # Gestión de permisos
   pdf: ^3.11.0               # Generación de PDFs 
+  fl_chart: ^0.66.0         # Gráficos
   
   # Firebase
   firebase_core: ^3.15.2          # Inicializar Firebase
