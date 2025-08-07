@@ -6,9 +6,12 @@ import '../controllers/auth_controller.dart';
 import '../controllers/settings_controller.dart';
 //import '../../models/user_model.dart';
 
+// Controlador para editar el perfil del usuario
+// Permite cambiar nombre, moneda, idioma y foto de perfil
 class EditProfileController extends ChangeNotifier {
   final BuildContext context;
 
+// Controladores y variables para manejar el estado del perfil
   final nameController = TextEditingController();
   String currency = 'MXN';
   String language = 'es';
@@ -70,6 +73,6 @@ class EditProfileController extends ChangeNotifier {
     debugPrint("Moneda: $currency");
     debugPrint("Idioma: $language");
     debugPrint("Imagen: ${pickedImage?.path}");
-    // Aquí iría la lógica para guardar en Firestore/Firebase
+    // Aquí iría la lógica para guardar en Firestore/Firebase y actualizar el usuario
   }
 }

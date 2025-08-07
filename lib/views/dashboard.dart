@@ -30,7 +30,7 @@ class DashboardState extends State<Dashboard> {
   // Estas son las vistas que se mostrarán en el Dashboard
   static final List<Widget> _views = [
     BalanceView(),
-    TransactionFormView(),
+    TransactionsView(),
     HomeView(),
     FriendsView(),
     SettingsView(),

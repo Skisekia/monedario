@@ -1,4 +1,8 @@
 // estas son que se importan en el archivo main.dart
+import 'package:intl/intl_standalone.dart' as intl_standalone;
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,6 +36,7 @@ Future<void> main() async {
   // Inicializar Firebase y establecer la orientación de la pantalla
   // Asegurarse de que los widgets de Flutter estén inicializados antes de usar Firebase
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('es_MX', null);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -87,7 +92,7 @@ class MyApp extends StatelessWidget {
         '/dashboard'         : (_) => const Dashboard(),
         '/settings_view'     : (_) => const SettingsView(),
         '/edit_profile_view' : (_) => const EditProfileView(),
-        '/transaction_form_view' : (_) => const TransactionFormView(),
+        '/transaction_form_view' : (_) => const TransactionsView(),
         '/add_debt'          : (_) => const AddDebtView(),
         '/add_payment'       : (_) => const AddPaymentView(),
         

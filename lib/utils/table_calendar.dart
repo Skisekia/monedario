@@ -31,7 +31,6 @@ class _TableCalendarViewState extends State<TableCalendarView> {
     super.didChangeDependencies();
     final txController = Provider.of<TransactionController>(context, listen: false);
 
-    // Agrupa transacciones por fecha de vencimiento (solo futuros)
     final Map<DateTime, List<TransactionModel>> map = {};
     for (var tx in txController.transactions) {
       final day = DateTime(tx.dueDate.year, tx.dueDate.month, tx.dueDate.day);
@@ -50,6 +49,11 @@ class _TableCalendarViewState extends State<TableCalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final paddingH = isTablet ? 30.0 : 12.0;
+    final paddingV = isTablet ? 22.0 : 12.0;
+
     return Scaffold(
       appBar: AppHeader(
         title: "Calendario de pagos",
@@ -58,47 +62,73 @@ class _TableCalendarViewState extends State<TableCalendarView> {
         showBack: true,
       ),
       body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: paddingH, vertical: paddingV),
         child: Column(
           children: [
-            TableCalendar<TransactionModel>(
-              firstDay: DateTime(DateTime.now().year, DateTime.now().month - 2),
-              lastDay: DateTime(DateTime.now().year, DateTime.now().month + 4, 31),
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
-              calendarFormat: CalendarFormat.month,
-              eventLoader: _getEventsForDay,
-              onDaySelected: (selected, focused) {
-                setState(() {
-                  _selectedDay = DateTime(selected.year, selected.month, selected.day);
-                  _focusedDay = focused;
-                });
-              },
-              calendarStyle: CalendarStyle(
-                markerDecoration: BoxDecoration(
-                  color: const Color(0xFF837AB6),
-                  shape: BoxShape.circle,
+            // Calendario bonito y responsivo
+            Material(
+              elevation: 2,
+              borderRadius: BorderRadius.circular(18),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: TableCalendar<TransactionModel>(
+                  firstDay: DateTime(DateTime.now().year, DateTime.now().month - 2),
+                  lastDay: DateTime(DateTime.now().year, DateTime.now().month + 6, 31),
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
+                  calendarFormat: CalendarFormat.month,
+                  eventLoader: _getEventsForDay,
+                  onDaySelected: (selected, focused) {
+                    setState(() {
+                      _selectedDay = DateTime(selected.year, selected.month, selected.day);
+                      _focusedDay = focused;
+                    });
+                  },
+                  calendarStyle: CalendarStyle(
+                    markerDecoration: BoxDecoration(
+                      color: const Color(0xFF837AB6),
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    selectedDecoration: BoxDecoration(
+                      color: const Color(0xFF250E2C),
+                      shape: BoxShape.circle,
+                    ),
+                    weekendTextStyle: const TextStyle(color: Colors.deepPurple),
+                    defaultTextStyle: const TextStyle(fontSize: 15),
+                  ),
+                  daysOfWeekStyle: const DaysOfWeekStyle(
+                    weekendStyle: TextStyle(color: Colors.deepPurple),
+                  ),
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    titleTextStyle: TextStyle(
+                        fontSize: isTablet ? 22 : 17,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF250E2C)),
+                    leftChevronIcon: Icon(Icons.chevron_left, color: Color(0xFF837AB6)),
+                    rightChevronIcon: Icon(Icons.chevron_right, color: Color(0xFF837AB6)),
+                  ),
                 ),
-                todayDecoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              headerStyle: const HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true,
               ),
             ),
             const SizedBox(height: 16),
+
+            // Detalle de pagos del día
             Text(
-              "Pagos para ${DateFormat('dd MMM yyyy').format(_selectedDay)}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              "Pagos para ${DateFormat('dd MMM yyyy', 'es_MX').format(_selectedDay)}",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isTablet ? 22 : 17,
+                color: const Color(0xFF250E2C),
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 7),
+
             Expanded(
               child: _getEventsForDay(_selectedDay).isNotEmpty
                   ? ListView.builder(
@@ -106,28 +136,49 @@ class _TableCalendarViewState extends State<TableCalendarView> {
                       itemBuilder: (_, i) {
                         final tx = _getEventsForDay(_selectedDay)[i];
                         return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 3),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           child: ListTile(
-                            leading: const Icon(Icons.payments, color: Color(0xFF837AB6)),
-                            title: Text(tx.concept, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            subtitle: Text(
-                              "Monto: \$${tx.amount.toStringAsFixed(2)}\n"
-                              "Tipo: ${tx.type.name.toUpperCase()}",
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 24 : 14, vertical: 10,
+                            ),
+                            leading: CircleAvatar(
+                              radius: isTablet ? 24 : 20,
+                              backgroundColor: const Color(0xFF837AB6).withAlpha(38),
+                              child: Icon(Icons.payments, color: Color(0xFF837AB6), size: isTablet ? 30 : 22),
+                            ),
+                            title: Text(
+                              tx.concept,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: isTablet ? 18 : 15,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                "Monto: \$${tx.amount.toStringAsFixed(2)}   |   ${tx.type.name.toUpperCase()}",
+                                style: TextStyle(fontSize: isTablet ? 15 : 12),
+                              ),
                             ),
                             trailing: Text(
                               DateFormat('hh:mm a').format(tx.dueDate),
-                              style: const TextStyle(color: Colors.black54, fontSize: 12),
+                              style: TextStyle(color: Colors.black54, fontSize: isTablet ? 14 : 12),
                             ),
-                            isThreeLine: true,
+                            isThreeLine: false,
                           ),
                         );
                       },
                     )
-                  : const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 28),
-                      child: Text("No hay pagos programados este día.", style: TextStyle(color: Colors.grey)),
+                  : Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: isTablet ? 30 : 14),
+                        child: Text(
+                          "No hay pagos programados este día.",
+                          style: TextStyle(color: Colors.grey, fontSize: isTablet ? 17 : 13),
+                        ),
+                      ),
                     ),
             ),
           ],

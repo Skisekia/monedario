@@ -11,6 +11,7 @@ class DebtController extends ChangeNotifier {
   final _db = FirebaseFirestore.instance;
 
   // Deudas y préstamos
+  final List<StreamSubscription> _paymentsSubs = [];
   final List<TransactionModel> _debts = [];
   List<TransactionModel> get activeDebts =>
       _debts.where((d) => d.type == TransactionType.debt).toList();
@@ -22,17 +23,15 @@ class DebtController extends ChangeNotifier {
   List<PaymentModel> get allPayments => List.unmodifiable(_allPayments);
 
   StreamSubscription? _debtsSub;
-  List<StreamSubscription> _paymentsSubs = [];
+
 
   DebtController() {
     _listenDebts();
   }
 
-  // --- Escucha la colección de deudas/préstamos ---
   void _listenDebts() {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
-
     _debtsSub = _db
         .collection('users')
         .doc(uid)
@@ -43,15 +42,12 @@ class DebtController extends ChangeNotifier {
       _debts
         ..clear()
         ..addAll(snap.docs.map((d) => TransactionModel.fromJson(d.id, d.data())));
-      // Cuando cambian las deudas, también cambiamos listeners de pagos
       _listenAllPayments();
       notifyListeners();
     });
   }
 
-  // --- Escucha todas las subcolecciones 'payments' de cada deuda/préstamo ---
   void _listenAllPayments() {
-    // Cancela listeners anteriores
     for (var sub in _paymentsSubs) {
       sub.cancel();
     }
@@ -61,7 +57,6 @@ class DebtController extends ChangeNotifier {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    // Para cada deuda/préstamo, escucha sus pagos
     for (final debt in _debts) {
       final sub = _db
           .collection('users')
@@ -72,7 +67,6 @@ class DebtController extends ChangeNotifier {
           .orderBy('date', descending: true)
           .snapshots()
           .listen((snap) {
-        // Borra solo los pagos de esa deuda y agrégalos de nuevo
         _allPayments.removeWhere((p) => p.debtId == debt.id);
         _allPayments.addAll(
           snap.docs.map((d) => PaymentModel.fromJson(d.id, d.data())..debtId = debt.id),
@@ -83,15 +77,33 @@ class DebtController extends ChangeNotifier {
     }
   }
 
-  // --- CRUD Deudas/Préstamos ---
   Future<void> addDebt(TransactionModel d) async {
+    _debts.insert(0, d);
+    notifyListeners();
+
+    try {
+      final uid = _auth.currentUser!.uid;
+      await _db
+          .collection('users')
+          .doc(uid)
+          .collection('debts')
+          .doc(d.id)
+          .set(d.toJson());
+    } catch (e) {
+      _debts.removeWhere((deuda) => deuda.id == d.id);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> updateDebt(TransactionModel d) async {
     final uid = _auth.currentUser!.uid;
     await _db
         .collection('users')
         .doc(uid)
         .collection('debts')
         .doc(d.id)
-        .set(d.toJson());
+        .update(d.toJson());
   }
 
   Future<void> deleteDebt(String debtId) async {
@@ -104,7 +116,6 @@ class DebtController extends ChangeNotifier {
         .delete();
   }
 
-  // --- Registrar y guardar un pago en la subcolección de la deuda/préstamo ---
   Future<void> registerPayment(
     String debtId,
     double amount, {
@@ -117,36 +128,91 @@ class DebtController extends ChangeNotifier {
         .collection('debts')
         .doc(debtId);
 
-    // Crea un nuevo PaymentModel
     final newPayment = PaymentModel(
-      id: _db.collection('tmp').doc().id, // genera un id aleatorio
+      id: _db.collection('tmp').doc().id,
       amount: amount,
       date: DateTime.now(),
       comprobanteUrl: comprobanteUrl,
       debtId: debtId,
     );
-
     await _db.runTransaction((tx) async {
       final snap = await tx.get(ref);
       final prev = (snap['paid'] ?? 0).toDouble();
       final total = (prev + amount);
-
       final Map<String, dynamic> updateData = {'paid': total};
       if (comprobanteUrl != null) {
         updateData['comprobanteUrl'] = comprobanteUrl;
       }
       tx.update(ref, updateData);
-
-      // Agrega el pago a la subcolección 'payments' de la deuda
       final paymentRef = ref.collection('payments').doc(newPayment.id);
       tx.set(paymentRef, newPayment.toJson());
     });
-    // No es necesario llamar a fetch/refresh porque los listeners se actualizan solos
   }
 
-  // Reutiliza registerPayment para préstamos
   Future<void> registerLoanPayment(String loanId, double amount, {String? comprobanteUrl}) async {
     await registerPayment(loanId, amount, comprobanteUrl: comprobanteUrl);
+  }
+
+  Future<void> updatePayment({
+    required String debtId,
+    required String paymentId,
+    double? amount,
+    String? comprobanteUrl,
+  }) async {
+    final uid = _auth.currentUser!.uid;
+    final ref = _db
+        .collection('users')
+        .doc(uid)
+        .collection('debts')
+        .doc(debtId)
+        .collection('payments')
+        .doc(paymentId);
+
+    final updateData = <String, dynamic>{};
+    if (amount != null) updateData['amount'] = amount;
+    if (comprobanteUrl != null) updateData['comprobanteUrl'] = comprobanteUrl;
+
+    await ref.update(updateData);
+
+    await recalculatePaidTotal(debtId);
+  }
+
+  Future<void> deletePayment(String debtId, String paymentId) async {
+    final uid = _auth.currentUser!.uid;
+    await _db
+        .collection('users')
+        .doc(uid)
+        .collection('debts')
+        .doc(debtId)
+        .collection('payments')
+        .doc(paymentId)
+        .delete();
+
+    await recalculatePaidTotal(debtId);
+  }
+
+  Future<void> recalculatePaidTotal(String debtId) async {
+    final uid = _auth.currentUser!.uid;
+    final paymentsSnap = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('debts')
+        .doc(debtId)
+        .collection('payments')
+        .get();
+    // Sumar todos los pagos para actualizar el total pagado
+        final totalPaid = paymentsSnap.docs.fold<double>(
+        0,
+        (acc, doc) => acc + ((doc.data()['amount'] as num?)?.toDouble() ?? 0.0),
+      );
+
+// Actualizar el total pagado en la deuda
+    await _db
+        .collection('users')
+        .doc(uid)
+        .collection('debts')
+        .doc(debtId)
+        .update({'paid': totalPaid});
   }
 
   @override

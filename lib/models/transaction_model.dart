@@ -50,6 +50,8 @@ class TransactionModel {
  // Crea una instancia de TransactionModel desde un Map (Firestore/JSON)
   // Si no se proporciona un valor, se usa un valor por defecto
   factory TransactionModel.fromJson(String id, Map<String, dynamic> json) {
+    DateTime _fromTs(dynamic v) => v is Timestamp ? v.toDate() : DateTime.now();
+
     return TransactionModel(
       id          : id, // ID de la transacción
       concept     : json['concept']        as String, // concepto de la transacción
@@ -63,8 +65,8 @@ class TransactionModel {
       type        : TransactionType.values.byName(json['type']), // tipo de transacción
       accountType : AccountType.values.byName(json['accountType']), // tipo de cuenta
       createdAt   : (json['createdAt'] as Timestamp).toDate(), // fecha de creación
-      date        : (json['date'] as Timestamp).toDate(), // fecha de la transacción
-  
+      date        : _fromTs(json['date']), // fecha de la transacción
+
     );
   }
   // Método para actualizar el monto pagado
