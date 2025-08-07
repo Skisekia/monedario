@@ -18,5 +18,6 @@ class AppColors {
   static const gradientEnd = Color(0xFFF6A5C0);
   static const cardMain = Color(0xFF837AB6); 
   static const cardSecondary = Color(0xFF325DBB);
-  
+  static const cardTop = Color(0xFFF9F8FD);
+
 }

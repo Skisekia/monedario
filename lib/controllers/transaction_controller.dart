@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import '../models/enums.dart';
+import '../models/payment_model.dart';
 
 class TransactionController extends ChangeNotifier {
   final List<TransactionModel> _transactions = [];
+  final List<PaymentModel> _payments = [];
 
   List<TransactionModel> get transactions => List.unmodifiable(_transactions);
+  List<PaymentModel> get payments => List.unmodifiable(_payments);
 
   /* CRUD */
   void addTransaction(TransactionModel tx) {

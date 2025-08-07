@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
 
         // ← pantallas lista + FAB
         '/add_debt'    : (_) => const AddDebtView(),
-        '/add_payments' : (_) => const AddPaymentView(),
+        '/add_payment' : (_) => const AddPaymentView(),
       },
     );
   }

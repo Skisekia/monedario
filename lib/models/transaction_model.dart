@@ -1,6 +1,6 @@
 // 📄 lib/models/transaction_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'enums.dart';
+import 'enums.dart';   // <- aquí ya viene PaymentFreq, TransactionType, AccountType
 
 class TransactionModel {
   final String          id;
@@ -73,6 +73,3 @@ class TransactionModel {
         createdAt   : createdAt,
       );
 }
-
-/* enums extra */
-enum PaymentFreq { mensual, quincenal, semanal }

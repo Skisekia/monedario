@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/transaction_model.dart';
-//import '../models/enums.dart';
+import '../models/enums.dart';
 
-class DebtDetailView extends StatelessWidget {
+class DebtDetail extends StatelessWidget {
   final TransactionModel debt;
-  const DebtDetailView({super.key, required this.debt});
+  const DebtDetail({super.key, required this.debt});
 
   @override
   Widget build(BuildContext context) {
@@ -58,5 +58,7 @@ class DebtDetailView extends StatelessWidget {
         PaymentFreq.mensual   => 'Mensual',
         PaymentFreq.quincenal => 'Quincenal',
         PaymentFreq.semanal   => 'Semanal',
+        PaymentFreq.anual     => 'Anual',
+        PaymentFreq.diaria    => 'Diaria',
       };
 }

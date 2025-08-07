@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/theme.dart'; // importa tu archivo de colores
 
 class AppBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -26,7 +27,7 @@ class AppBottomNavBar extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black12, blurRadius: 16, offset: Offset(0, -2)),
+            color: Colors.black12, blurRadius: 16, offset: Offset(0, -2)),
         ],
       ),
       child: Stack(
@@ -37,17 +38,15 @@ class AppBottomNavBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(Icons.account_balance_rounded, "Balance", 0,
-                    gradientColors),
-                _buildNavItem(Icons.account_balance_wallet_rounded, "Cartera",
-                    1, gradientColors),
+                _buildNavItem(Icons.account_balance_rounded, "Balance", 0, gradientColors),
+                _buildNavItem(Icons.account_balance_wallet_rounded, "Cartera", 1, gradientColors),
                 const SizedBox(width: 72),
-                _buildNavItem(Icons.people_alt_rounded, "Amigos", 3,
-                    gradientColors),
+                _buildNavItem(Icons.people_alt_rounded, "Amigos", 3, gradientColors),
                 _buildNavItem(Icons.settings, "Ajustes", 4, gradientColors),
               ],
             ),
           ),
+          // FAB central solo con color solido
           Positioned(
             top: -38,
             left: 0,
@@ -61,11 +60,7 @@ class AppBottomNavBar extends StatelessWidget {
                   height: 74,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: AppColors.cardMain, // <---- SOLO COLOR (no gradient)
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x33837AB6),
@@ -97,8 +92,7 @@ class AppBottomNavBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(26),
       child: isSelected
           ? Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: gradientColors,

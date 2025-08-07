@@ -19,6 +19,7 @@ dependencies:
   image_picker: ^0.8.7+3          # Selección de imágenes
   url_launcher: ^6.3.0            # Abrir URLs
   intl: ^0.19.0              # Internacionalización
+  uuid: ^4.3.3
   
   # Firebase
   firebase_core: ^3.15.2          # Inicializar Firebase
