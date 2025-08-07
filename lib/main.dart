@@ -1,11 +1,7 @@
 // 📄 lib/main.dart
-// ──────────────────────────────────────────────────────────────
-// Paquetes
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:monedario/views/add_debt.dart';
-import 'package:monedario/views/add_payment.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 
@@ -19,12 +15,16 @@ import 'views/edit_profile_view.dart';
 import 'views/dashboard.dart';
 import 'views/settings_view.dart';
 import 'views/transaction_form_view.dart';
+import 'views/add_debt.dart';
+import 'views/add_payment.dart';
 
 // Controladores
 import 'controllers/auth_controller.dart';
 import 'controllers/transaction_controller.dart';
 import 'controllers/debt_controller.dart';
 
+// Modelos
+//import 'models/transaction_model.dart';  // Asegúrate que esta ruta esté bien
 // Tema
 import 'ui/theme.dart';
 
@@ -64,9 +64,6 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
-
-      // ------------- Rutas -------------
-      // *Ya no apuntamos a los formularios modales antiguos*
       initialRoute: '/welcome',
       routes: {
         '/splash'            : (_) => const SplashScreen(),
@@ -78,11 +75,12 @@ class MyApp extends StatelessWidget {
         '/settings_view'     : (_) => const SettingsView(),
         '/edit_profile_view' : (_) => const EditProfileView(),
         '/transaction_form_view' : (_) => const TransactionFormView(),
-
-        // ← pantallas lista + FAB
-        '/add_debt'    : (_) => const AddDebtView(),
-        '/add_payment' : (_) => const AddPaymentView(),
+        '/add_debt'          : (_) => const AddDebtView(),
+        '/add_payment'       : (_) => const AddPaymentView(),
+        
+        
       },
+     
     );
   }
 }

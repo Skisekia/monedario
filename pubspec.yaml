@@ -19,7 +19,11 @@ dependencies:
   image_picker: ^0.8.7+3          # Selección de imágenes
   url_launcher: ^6.3.0            # Abrir URLs
   intl: ^0.19.0              # Internacionalización
-  uuid: ^4.3.3
+  uuid: ^4.3.3             # Generación de UUIDs
+  table_calendar: ^3.0.9    # Calendario
+  path_provider: ^2.1.2   # Acceso al sistema de archivos
+  permission_handler: ^11.3.1 # Gestión de permisos
+  pdf: ^3.11.0               # Generación de PDFs 
   
   # Firebase
   firebase_core: ^3.15.2          # Inicializar Firebase
@@ -45,13 +49,13 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/logo_monedario.png"
+  image_path: "assets/ic_launcher.png"
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/logo_monedario.png
+    
     - assets/google.png
     - assets/facebook.png
     - assets/finance_boy.json
@@ -61,3 +65,4 @@ flutter:
     - assets/girl_support.json
     - assets/send.json
     - assets/avatar_default.json
+    - assets/prueba.pdf

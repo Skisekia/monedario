@@ -3,17 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/user_model.dart';
 import '../../utils/icon_mapper.dart';
 import '../../utils/modals_view.dart';
+// import 'package:open_file/open_file.dart'; // abrir el PDF tras descargarlo
+
+// Solicitar permisos de almacenamiento
+  Future<bool> requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      var status = await Permission.manageExternalStorage.request();
+      return status.isGranted;
+    }
+    return true; // iOS no necesita esto
+  }
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
+
+  
 }
 
 class _SettingsViewState extends State<SettingsView> {
@@ -56,6 +71,56 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
+  /// FUNCIÓN PARA DESCARGAR PDF DESDE ASSETS
+  Future<void> _downloadManualPdf(BuildContext context) async {
+    try {
+      // Solicita permisos de almacenamiento si es Android
+      if (Platform.isAndroid) {
+        bool granted = await requestStoragePermission();
+        if (!granted) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Permiso denegado para guardar archivos.')),
+            );
+          }
+          return;
+        }
+      }
+      // 2. Lee el PDF de assets
+      final byteData = await rootBundle.load('assets/prueba.pdf');
+
+      // 3. Obtiene la carpeta de descargas
+      Directory? directory;
+      if (Platform.isAndroid) {
+        directory = Directory('/storage/emulated/0/Download');
+      } else if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      }
+      if (directory == null) throw Exception('No se pudo acceder a la carpeta de descargas');
+
+      // 4. Crea el archivo en esa carpeta
+      final file = File('${directory.path}/prueba.pdf');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      // 5. Notificación de éxito
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF descargado en ${file.path}')),
+        );
+      }
+
+      // 6. (Opcional) Abre el archivo PDF automáticamente:
+      // await OpenFile.open(file.path);
+
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al descargar PDF: $e')),
+        );
+      }
+    }
+  }
+
   Widget buildProfileAvatar(String? gender) {
     final asset = getProfileIconAssetPath(gender);
     if (_profileImage != null) {
@@ -85,20 +150,19 @@ class _SettingsViewState extends State<SettingsView> {
           toolbarHeight: 36,
           automaticallyImplyLeading: false,
           titleSpacing: 0,
-          // No hay línea ni sombra ni title ni back
           actions: [
             IconButton(
-            icon: const Icon(Icons.logout, color: iconColor),
-            tooltip: "Cerrar sesión",
-            onPressed: () => settingsController.confirmLogout(() async {
-              await auth.signOut(
-                context,
-                mounted: () => mounted,
-              );
-              if (!mounted) return;
-              Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
-            }),
-          ),
+              icon: const Icon(Icons.logout, color: iconColor),
+              tooltip: "Cerrar sesión",
+              onPressed: () => settingsController.confirmLogout(() async {
+                await auth.signOut(
+                  context,
+                  mounted: () => mounted,
+                );
+                if (!mounted) return;
+                Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
+              }),
+            ),
           ],
         ),
       ),
@@ -116,7 +180,7 @@ class _SettingsViewState extends State<SettingsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Avatar + icono cámara perfectamente alineado
+                // Avatar
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -174,6 +238,17 @@ class _SettingsViewState extends State<SettingsView> {
 
                 // ===== CONFIGURACIÓN =====
                 Align(alignment: Alignment.centerLeft, child: Text("Configuración", style: sectionTitleStyle)),
+
+                // BOTÓN DESCARGAR MANUAL
+                ListTile(
+                  dense: true,
+                  minVerticalPadding: 0,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.download, color: iconColor, size: 21),
+                  title: const Text("Descargar manual", style: TextStyle(fontSize: 15)),
+                  onTap: () => _downloadManualPdf(context),
+                ),
+
                 ListTile(
                   dense: true,
                   minVerticalPadding: 0,
